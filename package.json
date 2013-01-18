@@ -1,0 +1,14 @@
+{
+  "name": "source-map-support",
+  "version": "0.1.0",
+  "main": "./source-map-support.js",
+  "scripts": {
+    "test": "node_modules/mocha/bin/mocha"
+  },
+  "dependencies": {
+    "source-map": "0.1.8"
+  },
+  "devDependencies": {
+    "mocha": "1.8.1"
+  }
+}
