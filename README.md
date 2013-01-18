@@ -1,6 +1,12 @@
 # Source Map Support
 
-This module provides source map support for stack traces in node via the [V8 stack trace API](http://code.google.com/p/v8/wiki/JavaScriptStackTraceApi). It uses the [source-map](https://github.com/mozilla/source-map) module to replace the paths and line numbers of source-mapped files with their original paths and line numbers. The output mimics node's stack trace format with the goal of making every compile-to-JS language more of a first-class citizen. This module takes effect globally and should be initialized by inserting a call to require('source-map-support') at the top of your code.
+This module provides source map support for stack traces in node via the [V8 stack trace API](http://code.google.com/p/v8/wiki/JavaScriptStackTraceApi). It uses the [source-map](https://github.com/mozilla/source-map) module to replace the paths and line numbers of source-mapped files with their original paths and line numbers. The output mimics node's stack trace format with the goal of making every compile-to-JS language more of a first-class citizen.
+
+### Installation
+
+    npm install source-map-support
+
+This module takes effect globally and should be initialized by inserting a call to require('source-map-support') at the top of your code.
 
 ### CoffeeScript Demo
 
