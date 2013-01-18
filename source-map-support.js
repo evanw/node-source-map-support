@@ -102,6 +102,10 @@ Error.prepareStackTrace = function(error, stack) {
 
 // Mimic node's stack trace printing when an exception escapes the process
 process.on('uncaughtException', function(error) {
+  if (!error || !error.stack) {
+    console.log('Uncaught exception:', error);
+    process.exit();
+  }
   var match = /\n    at [^(]+ \((.*):(\d+):(\d+)\)/.exec(error.stack);
   if (match) {
     var cache = {};
