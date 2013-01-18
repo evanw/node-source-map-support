@@ -16,8 +16,7 @@ function mapSourcePosition(cache, position) {
     sourceMappingURL = path.resolve(dir, sourceMappingURL);
 
     // Parse the source map
-    var sourceMap = cache[sourceMappingURL];
-    if (!sourceMap && fs.existsSync(sourceMappingURL)) {
+    if (fs.existsSync(sourceMappingURL)) {
       var sourceMapData = fs.readFileSync(sourceMappingURL, 'utf8');
       try {
         sourceMap = new SourceMapConsumer(sourceMapData);
