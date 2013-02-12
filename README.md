@@ -6,7 +6,7 @@ This module provides source map support for stack traces in node via the [V8 sta
 
     npm install source-map-support
 
-This module takes effect globally and should be initialized by inserting a call to require('source-map-support') at the top of your code.
+This module takes effect globally and should be initialized by inserting a call to `require('source-map-support')` at the top of your code.
 
 ### CoffeeScript Demo
 
@@ -42,6 +42,8 @@ The following terminal commands show a stack trace in node with CoffeeScript fil
         at Function.Module._load (module.js:312:12)
         at Module.runMain (module.js:492:10)
         at process.startup.processNextTick.process._tickCallback (node.js:244:9)
+
+Note that the steps above are just to demonstrate this library. If you want good stack traces for your own CoffeeScript project, you can run coffee files directly with CoffeeScriptRedux (use the `--eval` flag) and the stack traces will have the correct CoffeeScript line numbers.
 
 ### TypeScript Demo
 
