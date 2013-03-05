@@ -14,7 +14,7 @@ The following terminal commands show a stack trace in node with CoffeeScript fil
 
     $ cat > demo.coffee
 
-    require 'source-map-support'
+    require('source-map-support').install()
     foo = ->
       bar = -> throw new Error 'this is a demo'
       bar()
@@ -52,7 +52,7 @@ The following terminal commands show a stack trace in node with TypeScript filen
     $ cat > demo.ts
 
     declare function require(name: string);
-    require('source-map-support');
+    require('source-map-support').install();
     class Foo {
       constructor() { this.bar(); }
       bar() { throw new Error('this is a demo'); }
@@ -76,6 +76,14 @@ The following terminal commands show a stack trace in node with TypeScript filen
         at Function.Module._load (module.js:312:12)
         at Module.runMain (module.js:492:10)
         at process.startup.processNextTick.process._tickCallback (node.js:244:9)
+
+### Options
+
+This module installs two things: a change to the `stack` property on `Error` objects and a handler for uncaught exceptions that mimics node's default exception handler (the handler can be seen in the demos above). You may want to disable the handler if you have your own uncaught exception handler. This can be done by passing an argument to the installer:
+
+    require('source-map-support').install({
+      handleUncaughtExceptions: false
+    });
 
 ### License
 

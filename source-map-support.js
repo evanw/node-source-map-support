@@ -89,7 +89,7 @@ function wrapCallSite(cache, frame) {
 
 // This function is part of the V8 stack trace API, for more info see:
 // http://code.google.com/p/v8/wiki/JavaScriptStackTraceApi
-Error.prepareStackTrace = function(error, stack) {
+function prepareStackTrace(error, stack) {
   // Store source maps in a cache so we don't load them more than once when
   // formatting a single stack trace (don't cache them forever though in case
   // the files change on disk and the user wants to see the updated mapping)
@@ -97,10 +97,10 @@ Error.prepareStackTrace = function(error, stack) {
   return error + stack.map(function(frame) {
     return '\n    at ' + wrapCallSite(cache, frame);
   }).join('');
-};
+}
 
 // Mimic node's stack trace printing when an exception escapes the process
-process.on('uncaughtException', function(error) {
+function handleUncaughtExceptions(error) {
   if (!error || !error.stack) {
     console.log('Uncaught exception:', error);
     process.exit();
@@ -125,4 +125,24 @@ process.on('uncaughtException', function(error) {
   }
   console.log(error.stack);
   process.exit();
-});
+}
+
+exports.install = function(options) {
+  Error.prepareStackTrace = prepareStackTrace;
+
+  // Configure options
+  options = options || {};
+  var installHandler = 'handleUncaughtExceptions' in options ?
+    options.handleUncaughtExceptions : true;
+
+  // Provide the option to not install the uncaught exception handler. This is
+  // to support other uncaught exception handlers (in test frameworks, for
+  // example). If this handler is not installed and there are no other uncaught
+  // exception handlers, uncaught exceptions will be caught by node's built-in
+  // exception handler and the process will still be terminated. However, the
+  // generated JavaScript code will be shown above the stack trace instead of
+  // the original source code.
+  if (installHandler) {
+    process.on('uncaughtException', handleUncaughtExceptions);
+  }
+};
