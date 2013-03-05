@@ -99,8 +99,7 @@ Error.prepareStackTrace = function(error, stack) {
   }).join('');
 };
 
-// Mimic node's stack trace printing when an exception escapes the process
-process.on('uncaughtException', function(error) {
+var actOnUncaughtException = function(error) {
   if (!error || !error.stack) {
     console.log('Uncaught exception:', error);
     process.exit();
@@ -125,4 +124,21 @@ process.on('uncaughtException', function(error) {
   }
   console.log(error.stack);
   process.exit();
-});
+};
+
+// Mimic node's stack trace printing when an exception escapes the process
+process.on('uncaughtException', actOnUncaughtException)
+
+// Sometimes we want to convert the stack traces displayed using
+// source-map-support, but other code handles logging the error and
+// handling the uncaught exception.  Examples include test frameworks
+// and servers which should stay running as much as possible.  The
+// 'convertOnly' function below turns off listening for uncaught
+// exceptions.
+var convertOnly = function() {
+    process.removeListener("uncaughtException", actOnUncaughtException)
+};
+
+module.exports = {
+    convertOnly: convertOnly
+}
