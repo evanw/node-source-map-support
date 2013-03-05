@@ -1,6 +1,7 @@
 {
   "name": "source-map-support",
-  "version": "0.1.0",
+  "description": "Fixes stack traces for files with source maps",
+  "version": "0.1.1",
   "main": "./source-map-support.js",
   "scripts": {
     "test": "node_modules/mocha/bin/mocha"
