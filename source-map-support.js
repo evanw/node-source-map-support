@@ -7,7 +7,7 @@ function mapSourcePosition(cache, position) {
   if (!sourceMap && fs.existsSync(position.source)) {
     // Get the URL of the source map
     var fileData = fs.readFileSync(position.source, 'utf8');
-    var match = /\/\/@\s*sourceMappingURL=(.*)\s*$/.exec(fileData);
+    var match = /\/\/@\s*sourceMappingURL=(.*)\s*$/m.exec(fileData);
     if (!match) return position;
     var sourceMappingURL = match[1];
 
