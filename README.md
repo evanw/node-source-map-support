@@ -20,30 +20,24 @@ The following terminal commands show a stack trace in node with CoffeeScript fil
       bar()
     foo()
 
-    $ npm install source-map-support
-    $ git clone https://github.com/michaelficarra/CoffeeScriptRedux.git
-    $ cd CoffeeScriptRedux && npm install && cd ..
-    $ CoffeeScriptRedux/bin/coffee --js -i demo.coffee > demo.js
-    $ echo '//@ sourceMappingURL=demo.js.map' >> demo.js
-    $ CoffeeScriptRedux/bin/coffee --source-map -i demo.coffee > demo.js.map
+    $ npm install source-map-support coffee-script
+    $ node_modules/coffee-script/bin/coffee --map --compile demo.coffee
     $ node demo
 
     demo.coffee:4
       bar = -> throw new Error 'this is a demo'
-                      ^
+                        ^
     Error: this is a demo
-        at bar (demo.coffee:4:19)
+        at bar (demo.coffee:4:21)
         at foo (demo.coffee:5:3)
-        at Object.<anonymous> (demo.coffee:6:3)
-        at Object.<anonymous> (demo.coffee:6:6)
+        at Object.<anonymous> (demo.coffee:6)
+        at Object.<anonymous> (demo.coffee:2)
         at Module._compile (module.js:449:26)
         at Object.Module._extensions..js (module.js:467:10)
         at Module.load (module.js:356:32)
         at Function.Module._load (module.js:312:12)
         at Module.runMain (module.js:492:10)
         at process.startup.processNextTick.process._tickCallback (node.js:244:9)
-
-Note that the steps above are just to demonstrate this library. If you want good stack traces for your own CoffeeScript project, you can run coffee files directly with CoffeeScriptRedux (use the `--eval` flag) and the stack traces will have the correct CoffeeScript line numbers.
 
 ### TypeScript Demo
 
