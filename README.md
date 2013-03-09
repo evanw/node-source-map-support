@@ -6,7 +6,7 @@ This module provides source map support for stack traces in node via the [V8 sta
 
     npm install source-map-support
 
-This module takes effect globally and should be initialized by inserting a call to `require('source-map-support')` at the top of your code.
+This module takes effect globally and should be initialized by inserting `require('source-map-support').install()` at the top of your code.
 
 ### CoffeeScript Demo
 
