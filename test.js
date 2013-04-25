@@ -5,6 +5,18 @@ var child_process = require('child_process');
 var assert = require('assert');
 var fs = require('fs');
 
+function compareLines(actual, expected) {
+  assert(actual.length >= expected.length, 'got ' + actual.length + ' lines but expected at least ' + expected.length + ' lines');
+  for (var i = 0; i < expected.length; i++) {
+    // Some tests are regular expressions because the output format changed slightly between node v0.9.2 and v0.9.3
+    if (expected[i] instanceof RegExp) {
+      assert(expected[i].test(actual[i]), JSON.stringify(actual[i]) + ' does not match ' + expected[i]);
+    } else {
+      assert.equal(actual[i], expected[i]);
+    }
+  }
+}
+
 function compareStackTrace(source, expected) {
   var sourceMap = new SourceMapGenerator({
     file: '.generated.js',
@@ -24,8 +36,7 @@ function compareStackTrace(source, expected) {
     delete require.cache[require.resolve('./.generated')];
     require('./.generated').test();
   } catch (e) {
-    expected = expected.join('\n');
-    assert.equal(e.stack.slice(0, expected.length), expected);
+    compareLines(e.stack.split('\n'), expected);
   }
   fs.unlinkSync('.generated.js');
   fs.unlinkSync('.generated.js.map');
@@ -46,9 +57,8 @@ function compareStdout(done, source, expected) {
   fs.writeFileSync('.generated.js', source.join('\n') +
     '//@ sourceMappingURL=.generated.js.map');
   child_process.exec('node ./.generated', function(error, stdout, stderr) {
-    expected = expected.join('\n');
     try {
-      assert.equal((stdout + stderr).slice(0, expected.length), expected);
+      compareLines((stdout + stderr).trim().split('\n'), expected);
     } catch (e) {
       return done(e);
     }
@@ -103,7 +113,7 @@ it('eval', function() {
     'eval("throw new Error(\'test\')");'
   ], [
     'Error: test',
-    '    at Object.eval (eval at <anonymous> (./line1.js:1001:101))',
+    /^    at Object.eval \(eval at <anonymous> \(\.\/line1\.js:1001:101\)/,
     '    at Object.exports.test (./line1.js:1001:101)'
   ]);
 });
@@ -113,8 +123,8 @@ it('eval inside eval', function() {
     'eval("eval(\'throw new Error(\\"test\\")\')");'
   ], [
     'Error: test',
-    '    at Object.eval (eval at <anonymous> (eval at <anonymous> (./line1.js:1001:101)))',
-    '    at Object.eval (eval at <anonymous> (./line1.js:1001:101))',
+    /^    at Object.eval \(eval at <anonymous> \(eval at <anonymous> \(\.\/line1\.js:1001:101\)/,
+    /^    at Object.eval \(eval at <anonymous> \(\.\/line1\.js:1001:101\)/,
     '    at Object.exports.test (./line1.js:1001:101)'
   ]);
 });
@@ -127,7 +137,7 @@ it('eval inside function', function() {
     'foo();'
   ], [
     'Error: test',
-    '    at eval (eval at foo (./line2.js:1002:102))',
+    /^    at eval \(eval at foo \(\.\/line2\.js:1002:102\)/,
     '    at foo (./line2.js:1002:102)',
     '    at Object.exports.test (./line4.js:1004:104)'
   ]);
@@ -149,7 +159,7 @@ it('eval with sourceURL inside eval', function() {
   ], [
     'Error: test',
     '    at Object.eval (sourceURL.js:1:7)',
-    '    at Object.eval (eval at <anonymous> (./line1.js:1001:101))',
+    /^    at Object.eval \(eval at <anonymous> \(\.\/line1\.js:1001:101\)/,
     '    at Object.exports.test (./line1.js:1001:101)'
   ]);
 });
@@ -162,7 +172,6 @@ it('default options', function(done) {
     'process.nextTick(foo);',
     'process.nextTick(function() { process.exit(1); });'
   ], [
-    '',
     './.original.js:1',
     'this is the original code',
     '^',
@@ -178,7 +187,6 @@ it('handleUncaughtExceptions is true', function(done) {
     'require("./source-map-support").install({ handleUncaughtExceptions: true });',
     'process.nextTick(foo);'
   ], [
-    '',
     './.original.js:1',
     'this is the original code',
     '^',
@@ -194,8 +202,7 @@ it('handleUncaughtExceptions is false', function(done) {
     'require("./source-map-support").install({ handleUncaughtExceptions: false });',
     'process.nextTick(foo);'
   ], [
-    '',
-    __dirname + '/.generated.js:2',
+    /\/.generated.js:2$/,
     'function foo() { throw new Error("this is the error"); }',
     '                       ^',
     'Error: this is the error',
