@@ -74,7 +74,7 @@ it('normal throw', function() {
     'throw new Error("test");'
   ], [
     'Error: test',
-    '    at Object.exports.test (./line1.js:1001:101)'
+    /^    at Object\.exports\.test \(.*\/line1\.js:1001:101\)$/
   ]);
 });
 
@@ -86,8 +86,8 @@ it('throw inside function', function() {
     'foo();'
   ], [
     'Error: test',
-    '    at foo (./line2.js:1002:102)',
-    '    at Object.exports.test (./line4.js:1004:104)'
+    /^    at foo \(.*\/line2\.js:1002:102\)$/,
+    /^    at Object\.exports\.test \(.*\/line4\.js:1004:104\)$/
   ]);
 });
 
@@ -102,9 +102,9 @@ it('throw inside function inside function', function() {
     'foo();'
   ], [
     'Error: test',
-    '    at bar (./line3.js:1003:103)',
-    '    at foo (./line5.js:1005:105)',
-    '    at Object.exports.test (./line7.js:1007:107)'
+    /^    at bar \(.*\/line3\.js:1003:103\)$/,
+    /^    at foo \(.*\/line5\.js:1005:105\)$/,
+    /^    at Object\.exports\.test \(.*\/line7\.js:1007:107\)$/
   ]);
 });
 
@@ -113,8 +113,8 @@ it('eval', function() {
     'eval("throw new Error(\'test\')");'
   ], [
     'Error: test',
-    /^    at Object.eval \(eval at <anonymous> \(\.\/line1\.js:1001:101\)/,
-    '    at Object.exports.test (./line1.js:1001:101)'
+    /^    at Object\.eval \(eval at <anonymous> \(.*\/line1\.js:1001:101\)/,
+    /^    at Object\.exports\.test \(.*\/line1\.js:1001:101\)$/
   ]);
 });
 
@@ -123,9 +123,9 @@ it('eval inside eval', function() {
     'eval("eval(\'throw new Error(\\"test\\")\')");'
   ], [
     'Error: test',
-    /^    at Object.eval \(eval at <anonymous> \(eval at <anonymous> \(\.\/line1\.js:1001:101\)/,
-    /^    at Object.eval \(eval at <anonymous> \(\.\/line1\.js:1001:101\)/,
-    '    at Object.exports.test (./line1.js:1001:101)'
+    /^    at Object\.eval \(eval at <anonymous> \(eval at <anonymous> \(.*\/line1\.js:1001:101\)/,
+    /^    at Object\.eval \(eval at <anonymous> \(.*\/line1\.js:1001:101\)/,
+    /^    at Object\.exports\.test \(.*\/line1\.js:1001:101\)$/
   ]);
 });
 
@@ -137,9 +137,9 @@ it('eval inside function', function() {
     'foo();'
   ], [
     'Error: test',
-    /^    at eval \(eval at foo \(\.\/line2\.js:1002:102\)/,
-    '    at foo (./line2.js:1002:102)',
-    '    at Object.exports.test (./line4.js:1004:104)'
+    /^    at eval \(eval at foo \(.*\/line2\.js:1002:102\)/,
+    /^    at foo \(.*\/line2\.js:1002:102\)/,
+    /^    at Object\.exports\.test \(.*\/line4\.js:1004:104\)$/
   ]);
 });
 
@@ -149,7 +149,7 @@ it('eval with sourceURL', function() {
   ], [
     'Error: test',
     '    at Object.eval (sourceURL.js:1:7)',
-    '    at Object.exports.test (./line1.js:1001:101)'
+    /^    at Object\.exports\.test \(.*\/line1\.js:1001:101\)$/
   ]);
 });
 
@@ -159,8 +159,8 @@ it('eval with sourceURL inside eval', function() {
   ], [
     'Error: test',
     '    at Object.eval (sourceURL.js:1:7)',
-    /^    at Object.eval \(eval at <anonymous> \(\.\/line1\.js:1001:101\)/,
-    '    at Object.exports.test (./line1.js:1001:101)'
+    /^    at Object\.eval \(eval at <anonymous> \(.*\/line1\.js:1001:101\)/,
+    /^    at Object\.exports\.test \(.*\/line1\.js:1001:101\)$/
   ]);
 });
 
@@ -172,11 +172,11 @@ it('default options', function(done) {
     'process.nextTick(foo);',
     'process.nextTick(function() { process.exit(1); });'
   ], [
-    './.original.js:1',
+    /\/.original\.js:1$/,
     'this is the original code',
     '^',
     'Error: this is the error',
-    '    at foo (./.original.js:1:1)'
+    /^    at foo \(.*\/.original\.js:1:1\)$/
   ]);
 });
 
@@ -187,11 +187,11 @@ it('handleUncaughtExceptions is true', function(done) {
     'require("./source-map-support").install({ handleUncaughtExceptions: true });',
     'process.nextTick(foo);'
   ], [
-    './.original.js:1',
+    /\/.original\.js:1$/,
     'this is the original code',
     '^',
     'Error: this is the error',
-    '    at foo (./.original.js:1:1)'
+    /^    at foo \(.*\/.original\.js:1:1\)$/
   ]);
 });
 
@@ -206,6 +206,6 @@ it('handleUncaughtExceptions is false', function(done) {
     'function foo() { throw new Error("this is the error"); }',
     '                       ^',
     'Error: this is the error',
-    '    at foo (./.original.js:1:1)'
+    /^    at foo \(.*\/.original\.js:1:1\)$/
   ]);
 });
