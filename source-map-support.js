@@ -18,11 +18,8 @@ function mapSourcePosition(cache, position) {
     // Parse the source map
     if (fs.existsSync(sourceMappingURL)) {
       var sourceMapData = fs.readFileSync(sourceMappingURL, 'utf8');
-      try {
-        sourceMap = new SourceMapConsumer(sourceMapData);
-        cache[position.source] = sourceMap;
-      } catch (e) {
-      }
+      sourceMap = new SourceMapConsumer(sourceMapData);
+      cache[position.source] = sourceMap;
     }
   }
   return sourceMap ? sourceMap.originalPositionFor(position) : position;
