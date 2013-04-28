@@ -82,7 +82,7 @@ function wrapCallSite(cache, frame) {
   }
 
   // Code called using eval() needs special handling
-  var origin = frame.getEvalOrigin();
+  var origin = frame.isEval() && frame.getEvalOrigin();
   if (origin) {
     origin = mapEvalOrigin(cache, origin);
     return {

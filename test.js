@@ -164,6 +164,16 @@ it('eval with sourceURL inside eval', function() {
   ]);
 });
 
+it('function constructor', function() {
+  compareStackTrace([
+    'throw new Function(")");'
+  ], [
+    'SyntaxError: Unexpected token )',
+    /^    at Object\.Function \((?:unknown source|<anonymous>)\)$/,
+    /^    at Object\.exports\.test \(.*\/line1\.js:1001:101\)$/,
+  ]);
+});
+
 it('default options', function(done) {
   compareStdout(done, [
     '',
