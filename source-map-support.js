@@ -2,7 +2,7 @@ var SourceMapConsumer = require('source-map').SourceMapConsumer;
 var path = require('path');
 var fs = require('fs');
 
-function mapSourcePosition(cache, position) {
+exports.mapSourcePosition = mapSourcePosition = function(cache, position) {
   var sourceMap = cache[position.source];
   if (!sourceMap && fs.existsSync(position.source)) {
     // Get the URL of the source map
