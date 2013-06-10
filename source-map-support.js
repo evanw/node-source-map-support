@@ -7,7 +7,7 @@ exports.mapSourcePosition = mapSourcePosition = function(cache, position) {
   if (!sourceMap && fs.existsSync(position.source)) {
     // Get the URL of the source map
     var fileData = fs.readFileSync(position.source, 'utf8');
-    var match = /\/\/@\s*sourceMappingURL=(.*)\s*$/m.exec(fileData);
+    var match = /\/\/[#@]\s*sourceMappingURL=(.*)\s*$/m.exec(fileData);
     if (!match) return position;
     var sourceMappingURL = match[1];
 
@@ -63,7 +63,7 @@ function mapEvalOrigin(cache, origin) {
 
 function wrapCallSite(cache, frame) {
   // Most call sites will return the source file from getFileName(), but code
-  // passed to eval() ending in "//@ sourceURL=..." will return the source file
+  // passed to eval() ending in "//# sourceURL=..." will return the source file
   // from getScriptNameOrSourceURL() instead
   var source = frame.getFileName() || frame.getScriptNameOrSourceURL();
   if (source) {
