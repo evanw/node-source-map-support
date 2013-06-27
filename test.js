@@ -29,6 +29,8 @@ function compareStackTrace(source, expected) {
       source: 'line' + i + '.js'
     });
   }
+
+  // Check once with a separate source map
   fs.writeFileSync('.generated.js.map', sourceMap);
   fs.writeFileSync('.generated.js', 'exports.test = function() {' +
     source.join('\n') + '};//@ sourceMappingURL=.generated.js.map');
@@ -40,6 +42,18 @@ function compareStackTrace(source, expected) {
   }
   fs.unlinkSync('.generated.js');
   fs.unlinkSync('.generated.js.map');
+
+  // Check again with an inline source map (in a data URL)
+  fs.writeFileSync('.generated.js', 'exports.test = function() {' +
+    source.join('\n') + '};//@ sourceMappingURL=data:application/json;base64,' +
+    new Buffer(sourceMap.toString()).toString('base64'));
+  try {
+    delete require.cache[require.resolve('./.generated')];
+    require('./.generated').test();
+  } catch (e) {
+    compareLines(e.stack.split('\n'), expected);
+  }
+  fs.unlinkSync('.generated.js');
 }
 
 function compareStdout(done, source, expected) {

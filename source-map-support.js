@@ -11,9 +11,9 @@ exports.mapSourcePosition = mapSourcePosition = function(cache, position) {
     if (!match) return position;
     var sourceMappingURL = match[1];
 
+    // Read the contents of the source map
     var sourceMapData;
-
-    var dataUrlPrefix = "data:application/json,base64,";
+    var dataUrlPrefix = "data:application/json;base64,";
     if (sourceMappingURL.slice(0, dataUrlPrefix.length).toLowerCase() == dataUrlPrefix) {
       // Support source map URL as a data url
       sourceMapData = new Buffer(sourceMappingURL.slice(dataUrlPrefix.length), "base64").toString();
@@ -28,7 +28,7 @@ exports.mapSourcePosition = mapSourcePosition = function(cache, position) {
       }
     }
 
-    if (sourceMapDat) {
+    if (sourceMapData) {
       sourceMap = {
         url: sourceMappingURL,
         map: new SourceMapConsumer(sourceMapData)
