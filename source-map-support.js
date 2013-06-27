@@ -11,13 +11,24 @@ exports.mapSourcePosition = mapSourcePosition = function(cache, position) {
     if (!match) return position;
     var sourceMappingURL = match[1];
 
-    // Support source map URLs relative to the source URL
-    var dir = path.dirname(position.source);
-    sourceMappingURL = path.resolve(dir, sourceMappingURL);
+    var sourceMapData;
 
-    // Parse the source map
-    if (fs.existsSync(sourceMappingURL)) {
-      var sourceMapData = fs.readFileSync(sourceMappingURL, 'utf8');
+    var dataUrlPrefix = "data:application/json,base64,";
+    if (sourceMappingURL.slice(0, dataUrlPrefix.length).toLowerCase() == dataUrlPrefix) {
+      // Support source map URL as a data url
+      sourceMapData = new Buffer(sourceMappingURL.slice(dataUrlPrefix.length), "base64").toString();
+    }
+    else {
+      // Support source map URLs relative to the source URL
+      var dir = path.dirname(position.source);
+      sourceMappingURL = path.resolve(dir, sourceMappingURL);
+
+      if (fs.existsSync(sourceMappingURL)) {
+        sourceMapData = fs.readFileSync(sourceMappingURL, 'utf8');
+      }
+    }
+
+    if (sourceMapDat) {
       sourceMap = {
         url: sourceMappingURL,
         map: new SourceMapConsumer(sourceMapData)
