@@ -17,11 +17,35 @@ function compareLines(actual, expected) {
   }
 }
 
-function compareStackTrace(source, expected) {
-  var sourceMap = new SourceMapGenerator({
+function createEmptySourceMap() {
+  return new SourceMapGenerator({
     file: '.generated.js',
     sourceRoot: '.'
   });
+}
+
+function createSourceMapWithGap() {
+  var sourceMap = createEmptySourceMap();
+  sourceMap.addMapping({
+    generated: { line: 100, column: 1 },
+    original: { line: 100, column: 1 },
+    source: '.original.js'
+  });
+  return sourceMap;
+}
+
+function createSingleLineSourceMap() {
+  var sourceMap = createEmptySourceMap();
+  sourceMap.addMapping({
+    generated: { line: 1, column: 1 },
+    original: { line: 1, column: 1 },
+    source: '.original.js'
+  });
+  return sourceMap;
+}
+
+function createMultiLineSourceMap() {
+  var sourceMap = createEmptySourceMap();
   for (var i = 1; i <= 100; i++) {
     sourceMap.addMapping({
       generated: { line: i, column: 1 },
@@ -29,7 +53,10 @@ function compareStackTrace(source, expected) {
       source: 'line' + i + '.js'
     });
   }
+  return sourceMap;
+}
 
+function compareStackTrace(sourceMap, source, expected) {
   // Check once with a separate source map
   fs.writeFileSync('.generated.js.map', sourceMap);
   fs.writeFileSync('.generated.js', 'exports.test = function() {' +
@@ -56,16 +83,7 @@ function compareStackTrace(source, expected) {
   fs.unlinkSync('.generated.js');
 }
 
-function compareStdout(done, source, expected) {
-  var sourceMap = new SourceMapGenerator({
-    file: '.generated.js',
-    sourceRoot: '.'
-  });
-  sourceMap.addMapping({
-    generated: { line: 1, column: 1 },
-    original: { line: 1, column: 1 },
-    source: '.original.js'
-  });
+function compareStdout(done, sourceMap, source, expected) {
   fs.writeFileSync('.original.js', 'this is the original code');
   fs.writeFileSync('.generated.js.map', sourceMap);
   fs.writeFileSync('.generated.js', source.join('\n') +
@@ -84,7 +102,7 @@ function compareStdout(done, source, expected) {
 }
 
 it('normal throw', function() {
-  compareStackTrace([
+  compareStackTrace(createMultiLineSourceMap(), [
     'throw new Error("test");'
   ], [
     'Error: test',
@@ -93,7 +111,7 @@ it('normal throw', function() {
 });
 
 it('throw inside function', function() {
-  compareStackTrace([
+  compareStackTrace(createMultiLineSourceMap(), [
     'function foo() {',
     '  throw new Error("test");',
     '}',
@@ -106,7 +124,7 @@ it('throw inside function', function() {
 });
 
 it('throw inside function inside function', function() {
-  compareStackTrace([
+  compareStackTrace(createMultiLineSourceMap(), [
     'function foo() {',
     '  function bar() {',
     '    throw new Error("test");',
@@ -123,7 +141,7 @@ it('throw inside function inside function', function() {
 });
 
 it('eval', function() {
-  compareStackTrace([
+  compareStackTrace(createMultiLineSourceMap(), [
     'eval("throw new Error(\'test\')");'
   ], [
     'Error: test',
@@ -133,7 +151,7 @@ it('eval', function() {
 });
 
 it('eval inside eval', function() {
-  compareStackTrace([
+  compareStackTrace(createMultiLineSourceMap(), [
     'eval("eval(\'throw new Error(\\"test\\")\')");'
   ], [
     'Error: test',
@@ -144,7 +162,7 @@ it('eval inside eval', function() {
 });
 
 it('eval inside function', function() {
-  compareStackTrace([
+  compareStackTrace(createMultiLineSourceMap(), [
     'function foo() {',
     '  eval("throw new Error(\'test\')");',
     '}',
@@ -158,7 +176,7 @@ it('eval inside function', function() {
 });
 
 it('eval with sourceURL', function() {
-  compareStackTrace([
+  compareStackTrace(createMultiLineSourceMap(), [
     'eval("throw new Error(\'test\')//@ sourceURL=sourceURL.js");'
   ], [
     'Error: test',
@@ -168,7 +186,7 @@ it('eval with sourceURL', function() {
 });
 
 it('eval with sourceURL inside eval', function() {
-  compareStackTrace([
+  compareStackTrace(createMultiLineSourceMap(), [
     'eval("eval(\'throw new Error(\\"test\\")//@ sourceURL=sourceURL.js\')");'
   ], [
     'Error: test',
@@ -179,7 +197,7 @@ it('eval with sourceURL inside eval', function() {
 });
 
 it('function constructor', function() {
-  compareStackTrace([
+  compareStackTrace(createMultiLineSourceMap(), [
     'throw new Function(")");'
   ], [
     'SyntaxError: Unexpected token )',
@@ -188,8 +206,26 @@ it('function constructor', function() {
   ]);
 });
 
+it('throw with empty source map', function() {
+  compareStackTrace(createEmptySourceMap(), [
+    'throw new Error("test");'
+  ], [
+    'Error: test',
+    /^    at Object\.exports\.test \(.*\/.generated.js:1:96\)$/
+  ]);
+});
+
+it('throw with source map with gap', function() {
+  compareStackTrace(createSourceMapWithGap(), [
+    'throw new Error("test");'
+  ], [
+    'Error: test',
+    /^    at Object\.exports\.test \(.*\/.generated.js:1:96\)$/
+  ]);
+});
+
 it('default options', function(done) {
-  compareStdout(done, [
+  compareStdout(done, createSingleLineSourceMap(), [
     '',
     'function foo() { throw new Error("this is the error"); }',
     'require("./source-map-support").install();',
@@ -205,7 +241,7 @@ it('default options', function(done) {
 });
 
 it('handleUncaughtExceptions is true', function(done) {
-  compareStdout(done, [
+  compareStdout(done, createSingleLineSourceMap(), [
     '',
     'function foo() { throw new Error("this is the error"); }',
     'require("./source-map-support").install({ handleUncaughtExceptions: true });',
@@ -220,7 +256,7 @@ it('handleUncaughtExceptions is true', function(done) {
 });
 
 it('handleUncaughtExceptions is false', function(done) {
-  compareStdout(done, [
+  compareStdout(done, createSingleLineSourceMap(), [
     '',
     'function foo() { throw new Error("this is the error"); }',
     'require("./source-map-support").install({ handleUncaughtExceptions: false });',
@@ -231,5 +267,35 @@ it('handleUncaughtExceptions is false', function(done) {
     '                       ^',
     'Error: this is the error',
     /^    at foo \(.*\/.original\.js:1:1\)$/
+  ]);
+});
+
+it('default options with empty source map', function(done) {
+  compareStdout(done, createEmptySourceMap(), [
+    '',
+    'function foo() { throw new Error("this is the error"); }',
+    'require("./source-map-support").install();',
+    'process.nextTick(foo);'
+  ], [
+    /\/.generated.js:2$/,
+    'function foo() { throw new Error("this is the error"); }',
+    '                       ^',
+    'Error: this is the error',
+    /^    at foo \(.*\/.generated.js:2:24\)$/
+  ]);
+});
+
+it('default options with source map with gap', function(done) {
+  compareStdout(done, createSourceMapWithGap(), [
+    '',
+    'function foo() { throw new Error("this is the error"); }',
+    'require("./source-map-support").install();',
+    'process.nextTick(foo);'
+  ], [
+    /\/.generated.js:2$/,
+    'function foo() { throw new Error("this is the error"); }',
+    '                       ^',
+    'Error: this is the error',
+    /^    at foo \(.*\/.generated.js:2:24\)$/
   ]);
 });
