@@ -10,8 +10,9 @@ This module takes effect globally and should be initialized by inserting `requir
 
 ### Usage
 
-To use a valid source map (generated using something like [source-map-index-generator][https://github.com/twolfson/source-map-index-generator]), 
-the compiled code should contain the following two extra lines:
+To use a valid source map (generated using something like [source-map-index-generator][sourceMapGenerator]), the compiled code should contain the following two extra lines:
+
+[sourceMapGenerator]:[https://github.com/twolfson/source-map-index-generator]
 
     //@sourceMappingURL=path/to/sourceMapFile.json
     require('source-map-support').install();
