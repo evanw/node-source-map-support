@@ -8,7 +8,18 @@ This module provides source map support for stack traces in node via the [V8 sta
 
 This module takes effect globally and should be initialized by inserting `require('source-map-support').install()` at the top of your code.
 
-### CoffeeScript Demo
+### Usage
+
+To use a valid source map (generated using something like [source-map-index-generator][https://github.com/twolfson/source-map-index-generator]), 
+the compiled code should contain the following two extra lines:
+
+    //@sourceMappingURL=path/to/sourceMapFile.json
+    require('source-map-support').install();
+    
+
+### Demos 
+
+#### CoffeeScript Demo
 
 The following terminal commands show a stack trace in node with CoffeeScript filenames:
 
@@ -39,7 +50,7 @@ The following terminal commands show a stack trace in node with CoffeeScript fil
         at Module.runMain (module.js:492:10)
         at process.startup.processNextTick.process._tickCallback (node.js:244:9)
 
-### TypeScript Demo
+#### TypeScript Demo
 
 The following terminal commands show a stack trace in node with TypeScript filenames:
 
