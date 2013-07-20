@@ -8,7 +8,52 @@ This module provides source map support for stack traces in node via the [V8 sta
 
 This module takes effect globally and should be initialized by inserting `require('source-map-support').install()` at the top of your code.
 
-### CoffeeScript Demo
+### Usage
+
+To use a valid source map (generated using something like [source-map-index-generator][sourceMapGenerator]), the compiled code should contain the following two extra lines:
+
+[sourceMapGenerator]:[https://github.com/twolfson/source-map-index-generator]
+
+    //@sourceMappingURL=path/to/sourceMapFile.json
+    require('source-map-support').install();
+    
+
+### Demos 
+
+#### Basic Demo
+
+original.js:
+
+    throw new Error("test");
+
+compiled.js:
+
+    //#sourceMappingURL=original.sourcemap.json
+    require('source-map-support').install();
+
+    throw new Error("test");
+
+original.sourcemap.json:
+
+    {"version":3,"file":"compiled.js","sources":["original.js"],"names":[],"mappings":";;;AAAA,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC"}
+
+After running compiled.js you should get the following outout:
+
+    /path/to/original.js:1
+    throw new Error("test");
+          ^
+    Error: test
+        at Object.<anonymous> (/path/to/original.js:1:7)
+        at Module._compile (module.js:456:26)
+        at Object.Module._extensions..js (module.js:474:10)
+        at Module.load (module.js:356:32)
+        at Function.Module._load (module.js:312:12)
+        at Function.Module.runMain (module.js:497:10)
+        at startup (node.js:119:16)
+        at node.js:901:3
+
+
+#### CoffeeScript Demo
 
 The following terminal commands show a stack trace in node with CoffeeScript filenames:
 
@@ -39,7 +84,7 @@ The following terminal commands show a stack trace in node with CoffeeScript fil
         at Module.runMain (module.js:492:10)
         at process.startup.processNextTick.process._tickCallback (node.js:244:9)
 
-### TypeScript Demo
+#### TypeScript Demo
 
 The following terminal commands show a stack trace in node with TypeScript filenames:
 
