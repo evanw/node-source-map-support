@@ -2,17 +2,43 @@ var SourceMapConsumer = require('source-map').SourceMapConsumer;
 var path = require('path');
 var fs = require('fs');
 
+function isInBrowser() {
+  return typeof window !== 'undefined';
+}
+
+function retrieveFile(path) {
+  // Use SJAX if we are in the browser
+  if (isInBrowser()) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', path, false);
+    xhr.send(null);
+    return xhr.readyState === 4 ? xhr.responseText : null;
+  }
+
+  // Otherwise, use the filesystem
+  try {
+    return fs.readFileSync(path, 'utf8');
+  } catch (e) {
+    return null;
+  }
+}
+
+// Support URLs relative to a directory, but be careful about a protocol prefix
+// in case we are in the browser (i.e. directories may start with "http://")
+function supportRelativeURL(dir, url) {
+  var match = /^\w+:\/\/[^\/]*/.exec(dir);
+  var protocol = match ? match[0] : '';
+  return protocol + path.resolve(dir.slice(protocol.length), url);
+}
+
 // Can be overridden by the retrieveSourceMap option to install. Takes a
 // generated source filename; returns a {map, optional url} object, or null if
 // there is no source map.  The map field may be either a string or the parsed
 // JSON object (ie, it must be a valid argument to the SourceMapConsumer
 // constructor).
 var retrieveSourceMap = function (source) {
-  if (!fs.existsSync(source))
-    return null;
-
   // Get the URL of the source map
-  var fileData = fs.readFileSync(source, 'utf8');
+  var fileData = retrieveFile(source);
   var match = /\/\/[#@]\s*sourceMappingURL=(.*)\s*$/m.exec(fileData);
   if (!match) return null;
   var sourceMappingURL = match[1];
@@ -23,15 +49,11 @@ var retrieveSourceMap = function (source) {
   if (sourceMappingURL.slice(0, dataUrlPrefix.length).toLowerCase() == dataUrlPrefix) {
     // Support source map URL as a data url
     sourceMapData = new Buffer(sourceMappingURL.slice(dataUrlPrefix.length), "base64").toString();
-  }
-  else {
+  } else {
     // Support source map URLs relative to the source URL
     var dir = path.dirname(source);
-    sourceMappingURL = path.resolve(dir, sourceMappingURL);
-
-    if (fs.existsSync(sourceMappingURL)) {
-      sourceMapData = fs.readFileSync(sourceMappingURL, 'utf8');
-    }
+    sourceMappingURL = supportRelativeURL(dir, sourceMappingURL);
+    sourceMapData = retrieveFile(sourceMappingURL, 'utf8');
   }
 
   if (!sourceMapData) {
@@ -68,7 +90,8 @@ var mapSourcePosition = exports.mapSourcePosition = function(cache, position) {
     // location in the original file.
     if (originalPosition.source !== null) {
       if (sourceMap.url) {
-        originalPosition.source = path.resolve(path.dirname(sourceMap.url), originalPosition.source);
+        originalPosition.source = supportRelativeURL(
+          path.dirname(sourceMap.url), originalPosition.source);
       }
       return originalPosition;
     }
@@ -196,7 +219,7 @@ exports.install = function(options) {
   // exception handler and the process will still be terminated. However, the
   // generated JavaScript code will be shown above the stack trace instead of
   // the original source code.
-  if (installHandler) {
+  if (installHandler && !isInBrowser()) {
     process.on('uncaughtException', handleUncaughtExceptions);
   }
 };
