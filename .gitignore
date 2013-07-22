@@ -1,0 +1,4 @@
+node_modules
+browserify-test/compiled.js
+browserify-test/script.js
+browserify-test/script.map
