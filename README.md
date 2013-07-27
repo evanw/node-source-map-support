@@ -4,6 +4,8 @@ This module provides source map support for stack traces in node via the [V8 sta
 
 ## Installation and Usage
 
+#### Node support
+
     npm install source-map-support
 
 Source maps can be generated using libraries such as [source-map-index-generator](https://github.com/twolfson/source-map-index-generator). Once you have a valid source map, insert the following two lines at the top of your compiled code:
@@ -12,6 +14,14 @@ Source maps can be generated using libraries such as [source-map-index-generator
     require('source-map-support').install();
 
 The path should either be absolute or relative to the compiled file.
+
+#### Browser support
+
+This library also works in Chrome. While the DevTools console already supports source maps, the V8 engine doesn't and `Error.prototype.stack` will be incorrect without this library. Everything will just work if you deploy your source files using [browserify](http://browserify.org/). Just make sure to pass the `--debug` flag to the browserify command so your source maps are included in the bundled code.
+
+This library also works if you use another build process or just include the source files directly. In this case, include the file `source-map-support.browser.js` in your page. It contains the whole library already bundled for the browser using browserify.
+
+    <script src="source-map-support.browser.js"></script>
 
 ## Options
 
