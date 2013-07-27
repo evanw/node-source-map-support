@@ -47,7 +47,7 @@ This module loads source maps from the filesystem by default. You can provide al
 
 ## Demos
 
-### Basic Demo
+#### Basic Demo
 
 original.js:
 
@@ -86,7 +86,7 @@ Run compiled.js using node (notice how the stack trace uses original.js instead 
         at Module.runMain (module.js:492:10)
         at process.startup.processNextTick.process._tickCallback (node.js:244:9)
 
-### TypeScript Demo
+#### TypeScript Demo
 
 demo.ts:
 
@@ -118,7 +118,7 @@ Compile and run the file using the TypeScript compiler from the terminal:
         at Module.runMain (module.js:492:10)
         at process.startup.processNextTick.process._tickCallback (node.js:244:9)
 
-### CoffeeScript Demo
+#### CoffeeScript Demo
 
 demo.coffee:
 
