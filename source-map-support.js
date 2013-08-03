@@ -20,21 +20,21 @@ function retrieveFile(path) {
     return fileContentsCache[path];
   }
 
-  // Use SJAX if we are in the browser
-  if (isInBrowser()) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', path, false);
-    xhr.send(null);
-    var contents = xhr.readyState === 4 ? xhr.responseText : null;
-  }
-
-  // Otherwise, use the filesystem
-  else {
-    try {
-      var contents = fs.readFileSync(path, 'utf8');
-    } catch (e) {
-      var contents = null;
+  try {
+    // Use SJAX if we are in the browser
+    if (isInBrowser()) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', path, false);
+      xhr.send(null);
+      var contents = xhr.readyState === 4 ? xhr.responseText : null;
     }
+
+    // Otherwise, use the filesystem
+    else {
+      var contents = fs.readFileSync(path, 'utf8');
+    }
+  } catch (e) {
+    var contents = null;
   }
 
   return fileContentsCache[path] = contents;
