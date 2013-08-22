@@ -1,6 +1,4 @@
-// Note: This is using source-map-typescript-fix instead of source-map until
-// Mozilla fixes their library to parse source maps with duplicate names
-var SourceMapConsumer = require('source-map-typescript-fix').SourceMapConsumer;
+var SourceMapConsumer = require('source-map').SourceMapConsumer;
 var path = require('path');
 var fs = require('fs');
 
