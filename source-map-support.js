@@ -2,6 +2,8 @@ var SourceMapConsumer = require('source-map').SourceMapConsumer;
 var path = require('path');
 var fs = require('fs');
 
+var alreadyInstalled = false;
+
 // If true, the caches are reset before a stack trace formatting operation
 var emptyCacheBetweenOperations = false;
 
@@ -216,28 +218,31 @@ function handleUncaughtExceptions(error) {
 }
 
 exports.install = function(options) {
-  Error.prepareStackTrace = prepareStackTrace;
+  if (!alreadyInstalled) {
+    alreadyInstalled = true;
+    Error.prepareStackTrace = prepareStackTrace;
 
-  // Configure options
-  options = options || {};
-  var installHandler = 'handleUncaughtExceptions' in options ?
-    options.handleUncaughtExceptions : true;
-  emptyCacheBetweenOperations = 'emptyCacheBetweenOperations' in options ?
-    options.emptyCacheBetweenOperations : false;
+    // Configure options
+    options = options || {};
+    var installHandler = 'handleUncaughtExceptions' in options ?
+      options.handleUncaughtExceptions : true;
+    emptyCacheBetweenOperations = 'emptyCacheBetweenOperations' in options ?
+      options.emptyCacheBetweenOperations : false;
 
-  // Allow source maps to be found by methods other than reading the files
-  // directly from disk.
-  if (options.retrieveSourceMap)
-    retrieveSourceMap = options.retrieveSourceMap;
+    // Allow source maps to be found by methods other than reading the files
+    // directly from disk.
+    if (options.retrieveSourceMap)
+      retrieveSourceMap = options.retrieveSourceMap;
 
-  // Provide the option to not install the uncaught exception handler. This is
-  // to support other uncaught exception handlers (in test frameworks, for
-  // example). If this handler is not installed and there are no other uncaught
-  // exception handlers, uncaught exceptions will be caught by node's built-in
-  // exception handler and the process will still be terminated. However, the
-  // generated JavaScript code will be shown above the stack trace instead of
-  // the original source code.
-  if (installHandler && !isInBrowser()) {
-    process.on('uncaughtException', handleUncaughtExceptions);
+    // Provide the option to not install the uncaught exception handler. This is
+    // to support other uncaught exception handlers (in test frameworks, for
+    // example). If this handler is not installed and there are no other uncaught
+    // exception handlers, uncaught exceptions will be caught by node's built-in
+    // exception handler and the process will still be terminated. However, the
+    // generated JavaScript code will be shown above the stack trace instead of
+    // the original source code.
+    if (installHandler && !isInBrowser()) {
+      process.on('uncaughtException', handleUncaughtExceptions);
+    }
   }
 };
