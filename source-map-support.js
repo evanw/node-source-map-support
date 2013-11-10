@@ -2,6 +2,7 @@ var SourceMapConsumer = require('source-map').SourceMapConsumer;
 var path = require('path');
 var fs = require('fs');
 
+// Only install once if called multiple times
 var alreadyInstalled = false;
 
 // If true, the caches are reset before a stack trace formatting operation
