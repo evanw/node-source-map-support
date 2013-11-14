@@ -1,4 +1,4 @@
-(require '../source-map-support').install()
+sourceMapSupport.install()
 
 foo = -> throw new Error 'foo'
 

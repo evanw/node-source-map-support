@@ -1,4 +1,7 @@
-node_modules
+node_modules/
+amd-test/browser-source-map-support.js
+amd-test/script.js
+amd-test/script.map
 browserify-test/compiled.js
 browserify-test/script.js
 browserify-test/script.map

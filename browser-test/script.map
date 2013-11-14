@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "script.js",
+  "sourceRoot": "..",
+  "sources": [
+    "browser-test/script.coffee"
+  ],
+  "names": [],
+  "mappings": ";AAAA;CAAA,KAAA;;CAAA,CAAA,KAAA,SAAgB;;CAAhB,CAEA,CAAA,MAAM;CAAG,GAAU,CAAA,KAAA;CAFnB,EAEM;;CAEN;CACE,EAAA,CAAA;IADF,EAAA;CAGE,GADI,EACJ;CAAA,GAAA,CAAG,eAAoB;CACrB,GAAa,EAAb,EAAQ,GAAR,EAA0B,CAAA;MAD5B;CAGE,GAAa,EAAb,EAAQ,GAAR,EAA0B,CAAA;CAA1B,EACA,EAAA,CAAA,CAAO;MAPX;IAJA;CAAA"
+}

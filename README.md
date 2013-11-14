@@ -19,9 +19,18 @@ The path should either be absolute or relative to the compiled file.
 
 This library also works in Chrome. While the DevTools console already supports source maps, the V8 engine doesn't and `Error.prototype.stack` will be incorrect without this library. Everything will just work if you deploy your source files using [browserify](http://browserify.org/). Just make sure to pass the `--debug` flag to the browserify command so your source maps are included in the bundled code.
 
-This library also works if you use another build process or just include the source files directly. In this case, include the file `source-map-support.browser.js` in your page. It contains the whole library already bundled for the browser using browserify.
+This library also works if you use another build process or just include the source files directly. In this case, include the file `browser-source-map-support.js` in your page and call `sourceMapSupport.install()`. It contains the whole library already bundled for the browser using browserify.
 
-    <script src="source-map-support.browser.js"></script>
+    <script src="browser-source-map-support.js"></script>
+    <script>sourceMapSupport.install();</script>
+
+This library also works if you use AMD (Asynchronous Module Definition), which is used in tools like [RequireJS](http://requirejs.org/). Just list `browser-source-map-support` as a dependency:
+
+    <script>
+      define(['browser-source-map-support'], function(sourceMapSupport) {
+        sourceMapSupport.install();
+      });
+    </script>
 
 ## Options
 
