@@ -230,6 +230,11 @@ exports.install = function(options) {
     emptyCacheBetweenOperations = 'emptyCacheBetweenOperations' in options ?
       options.emptyCacheBetweenOperations : false;
 
+    // Allow sources to be found by methods other than reading the files
+    // directly from disk.
+    if (options.retrieveFile)
+      retrieveFile = options.retrieveFile;
+
     // Allow source maps to be found by methods other than reading the files
     // directly from disk.
     if (options.retrieveSourceMap)
