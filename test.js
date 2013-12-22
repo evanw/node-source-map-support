@@ -301,3 +301,19 @@ it('default options with source map with gap', function(done) {
     /^    at foo \(.*\/.generated.js:2:24\)$/
   ]);
 });
+
+it('specifically requested error source', function(done) {
+  compareStdout(done, createSingleLineSourceMap(), [
+    '',
+    'function foo() { throw new Error("this is the error"); }',
+    'var sms = require("./source-map-support");',
+    'sms.install({ handleUncaughtExceptions: false });',
+    'process.on("uncaughtException", function (e) { console.log("SRC: ", sms.getErrorSource(e)); });',
+    'process.nextTick(foo);'
+  ], [
+    'SRC:  ',
+    /\/.original.js:1$/,
+    'this is the original code',
+    '^'
+  ]);
+});
