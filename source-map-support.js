@@ -218,6 +218,8 @@ function handleUncaughtExceptions(error) {
   process.exit();
 }
 
+exports.wrapCallSite = wrapCallSite;
+
 exports.install = function(options) {
   if (!alreadyInstalled) {
     alreadyInstalled = true;
