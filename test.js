@@ -29,8 +29,8 @@ function createEmptySourceMap() {
 function createSourceMapWithGap() {
   var sourceMap = createEmptySourceMap();
   sourceMap.addMapping({
-    generated: { line: 100, column: 1 },
-    original: { line: 100, column: 1 },
+    generated: { line: 100, column: 0 },
+    original: { line: 100, column: 0 },
     source: '.original.js'
   });
   return sourceMap;
@@ -39,8 +39,8 @@ function createSourceMapWithGap() {
 function createSingleLineSourceMap() {
   var sourceMap = createEmptySourceMap();
   sourceMap.addMapping({
-    generated: { line: 1, column: 1 },
-    original: { line: 1, column: 1 },
+    generated: { line: 1, column: 0 },
+    original: { line: 1, column: 0 },
     source: '.original.js'
   });
   return sourceMap;
@@ -50,8 +50,8 @@ function createMultiLineSourceMap() {
   var sourceMap = createEmptySourceMap();
   for (var i = 1; i <= 100; i++) {
     sourceMap.addMapping({
-      generated: { line: i, column: 1 },
-      original: { line: 1000 + i, column: 100 + i },
+      generated: { line: i, column: 0 },
+      original: { line: 1000 + i, column: 99 + i },
       source: 'line' + i + '.js'
     });
   }
@@ -299,5 +299,21 @@ it('default options with source map with gap', function(done) {
     '                       ^',
     'Error: this is the error',
     /^    at foo \(.*\/.generated.js:2:24\)$/
+  ]);
+});
+
+it('specifically requested error source', function(done) {
+  compareStdout(done, createSingleLineSourceMap(), [
+    '',
+    'function foo() { throw new Error("this is the error"); }',
+    'var sms = require("./source-map-support");',
+    'sms.install({ handleUncaughtExceptions: false });',
+    'process.on("uncaughtException", function (e) { console.log("SRC:" + sms.getErrorSource(e)); });',
+    'process.nextTick(foo);'
+  ], [
+    'SRC:',
+    /\/.original.js:1$/,
+    'this is the original code',
+    '^'
   ]);
 });
