@@ -241,6 +241,15 @@ it('throw with source map with gap', function() {
   ]);
 });
 
+it('sourcesContent with data URL', function() {
+  compareStackTrace(createMultiLineSourceMapWithSourcesContent(), [
+    'throw new Error("test");'
+  ], [
+    'Error: test',
+    /^    at Object\.exports\.test \(.*\/original.js:1001:5\)$/
+  ]);
+});
+
 it('default options', function(done) {
   compareStdout(done, createSingleLineSourceMap(), [
     '',
