@@ -45,7 +45,8 @@ function retrieveFile(path) {
 
 // Support URLs relative to a directory, but be careful about a protocol prefix
 // in case we are in the browser (i.e. directories may start with "http://")
-function supportRelativeURL(dir, url) {
+function supportRelativeURL(file, url) {
+  var dir = path.dirname(file);
   var match = /^\w+:\/\/[^\/]*/.exec(dir);
   var protocol = match ? match[0] : '';
   return protocol + path.resolve(dir.slice(protocol.length), url);
@@ -71,8 +72,7 @@ function retrieveSourceMap(source) {
     sourceMapData = new Buffer(sourceMappingURL.slice(dataUrlPrefix.length), "base64").toString();
   } else {
     // Support source map URLs relative to the source URL
-    var dir = path.dirname(source);
-    sourceMappingURL = supportRelativeURL(dir, sourceMappingURL);
+    sourceMappingURL = supportRelativeURL(source, sourceMappingURL);
     sourceMapData = retrieveFile(sourceMappingURL, 'utf8');
   }
 
@@ -96,6 +96,18 @@ function mapSourcePosition(position) {
         url: urlAndMap.url,
         map: new SourceMapConsumer(urlAndMap.map)
       };
+
+      // Load all sources stored inline with the source map into the file cache
+      // to pretend like they are already loaded. They may not exist on disk.
+      if (sourceMap.map.sourcesContent) {
+        sourceMap.map.sources.forEach(function(source, i) {
+          var contents = sourceMap.map.sourcesContent[i];
+          if (contents) {
+            var url = supportRelativeURL(sourceMap.url, source);
+            fileContentsCache[url] = contents;
+          }
+        });
+      }
     }
   }
 
@@ -111,7 +123,7 @@ function mapSourcePosition(position) {
     if (originalPosition.source !== null) {
       if (sourceMap.url) {
         originalPosition.source = supportRelativeURL(
-          path.dirname(sourceMap.url), originalPosition.source);
+          sourceMap.url, originalPosition.source);
       }
       return originalPosition;
     }
@@ -198,8 +210,17 @@ function getErrorSource(error) {
     var source = match[1];
     var line = +match[2];
     var column = +match[3];
-    if (fs.existsSync(source)) {
-      var contents = fs.readFileSync(source, 'utf8');
+
+    // Support the inline sourceContents inside the source map
+    var contents = fileContentsCache[source];
+
+    // Support files on disk
+    if (!contents && fs.existsSync(source)) {
+      contents = fs.readFileSync(source, 'utf8');
+    }
+
+    // Format the line from the original source code like node does
+    if (contents) {
       var code = contents.split(/(?:\r\n|\r|\n)/)[line - 1];
       if (code) {
         return '\n' + source + ':' + line + '\n' + code + '\n' +

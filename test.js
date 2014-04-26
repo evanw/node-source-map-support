@@ -58,6 +58,21 @@ function createMultiLineSourceMap() {
   return sourceMap;
 }
 
+function createMultiLineSourceMapWithSourcesContent() {
+  var sourceMap = createEmptySourceMap();
+  var original = new Array(1001).join('\n');
+  for (var i = 1; i <= 100; i++) {
+    sourceMap.addMapping({
+      generated: { line: i, column: 0 },
+      original: { line: 1000 + i, column: 4 },
+      source: 'original.js'
+    });
+    original += '    line ' + i + '\n';
+  }
+  sourceMap.setSourceContent('original.js', original);
+  return sourceMap;
+}
+
 function compareStackTrace(sourceMap, source, expected) {
   // Check once with a separate source map
   fs.writeFileSync('.generated.js.map', sourceMap);
@@ -315,5 +330,21 @@ it('specifically requested error source', function(done) {
     /\/.original.js:1$/,
     'this is the original code',
     '^'
+  ]);
+});
+
+it('sourcesContent', function(done) {
+  compareStdout(done, createMultiLineSourceMapWithSourcesContent(), [
+    '',
+    'function foo() { throw new Error("this is the error"); }',
+    'require("./source-map-support").install();',
+    'process.nextTick(foo);',
+    'process.nextTick(function() { process.exit(1); });'
+  ], [
+    /\/original\.js:1002$/,
+    '    line 2',
+    '    ^',
+    'Error: this is the error',
+    /^    at foo \(.*\/original\.js:1002:5\)$/
   ]);
 });
