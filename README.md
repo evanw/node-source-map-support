@@ -76,7 +76,7 @@ compiled.js.map:
       "file": "compiled.js",
       "sources": ["original.js"],
       "names": [],
-      "mappings": ";;;AAAA,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC"
+      "mappings": ";;;AAAA,MAAM,IAAI"
     }
 
 Run compiled.js using node (notice how the stack trace uses original.js instead of compiled.js):

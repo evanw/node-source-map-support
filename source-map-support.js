@@ -154,13 +154,13 @@ function wrapCallSite(frame) {
     var position = mapSourcePosition({
       source: source,
       line: frame.getLineNumber(),
-      column: frame.getColumnNumber()
+      column: frame.getColumnNumber() - 1
     });
     return {
       __proto__: frame,
       getFileName: function() { return position.source; },
       getLineNumber: function() { return position.line; },
-      getColumnNumber: function() { return position.column; },
+      getColumnNumber: function() { return position.column + 1; },
       getScriptNameOrSourceURL: function() { return position.source; }
     };
   }
@@ -192,25 +192,23 @@ function prepareStackTrace(error, stack) {
 }
 
 // Mimic node's stack trace printing when an exception escapes the process
-function handleUncaughtExceptions(error) {
+function handleUncaughtException(error) {
   if (!error || !error.stack) {
     console.log('Uncaught exception:', error);
     process.exit();
   }
   var match = /\n    at [^(]+ \((.*):(\d+):(\d+)\)/.exec(error.stack);
   if (match) {
-    var position = mapSourcePosition({
-      source: match[1],
-      line: match[2],
-      column: match[3]
-    });
-    if (fs.existsSync(position.source)) {
-      var contents = fs.readFileSync(position.source, 'utf8');
-      var line = contents.split(/(?:\r\n|\r|\n)/)[position.line - 1];
-      if (line) {
-        console.log('\n' + position.source + ':' + position.line);
-        console.log(line);
-        console.log(new Array(+position.column).join(' ') + '^');
+    var source = match[1];
+    var line = +match[2];
+    var column = +match[3];
+    if (fs.existsSync(source)) {
+      var contents = fs.readFileSync(source, 'utf8');
+      var code = contents.split(/(?:\r\n|\r|\n)/)[line - 1];
+      if (code) {
+        console.log('\n' + source + ':' + line);
+        console.log(code);
+        console.log(new Array(column).join(' ') + '^');
       }
     }
   }
@@ -225,8 +223,8 @@ exports.install = function(options) {
 
     // Configure options
     options = options || {};
-    var installHandler = 'handleUncaughtExceptions' in options ?
-      options.handleUncaughtExceptions : true;
+    var installHandler = 'handleUncaughtException' in options ?
+      options.handleUncaughtException : true;
     emptyCacheBetweenOperations = 'emptyCacheBetweenOperations' in options ?
       options.emptyCacheBetweenOperations : false;
 
@@ -243,7 +241,7 @@ exports.install = function(options) {
     // generated JavaScript code will be shown above the stack trace instead of
     // the original source code.
     if (installHandler && !isInBrowser()) {
-      process.on('uncaughtException', handleUncaughtExceptions);
+      process.on('uncaughtException', handleUncaughtException);
     }
   }
 };
