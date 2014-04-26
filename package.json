@@ -1,18 +1,18 @@
 {
   "name": "source-map-support",
   "description": "Fixes stack traces for files with source maps",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "main": "./source-map-support.js",
   "scripts": {
     "test": "node_modules/mocha/bin/mocha"
   },
   "dependencies": {
-    "source-map": "0.1.29"
+    "source-map": "0.1.32"
   },
   "devDependencies": {
-    "coffee-script": "1.6.3",
-    "browserify": "2.35.2",
-    "mocha": "1.8.1"
+    "coffee-script": "1.7.1",
+    "browserify": "3.44.2",
+    "mocha": "1.18.2"
   },
   "repository": {
     "type": "git",

@@ -84,16 +84,17 @@ Run compiled.js using node (notice how the stack trace uses original.js instead 
     $ node compiled.js
 
     original.js:1
-    throw new Error("test"); // This is the original code
+    throw new Error('test'); // This is the original code
           ^
     Error: test
         at Object.<anonymous> (original.js:1:7)
-        at Module._compile (module.js:449:26)
-        at Object.Module._extensions..js (module.js:467:10)
+        at Module._compile (module.js:456:26)
+        at Object.Module._extensions..js (module.js:474:10)
         at Module.load (module.js:356:32)
         at Function.Module._load (module.js:312:12)
-        at Module.runMain (module.js:492:10)
-        at process.startup.processNextTick.process._tickCallback (node.js:244:9)
+        at Function.Module.runMain (module.js:497:10)
+        at startup (node.js:119:16)
+        at node.js:901:3
 
 #### TypeScript Demo
 
@@ -113,19 +114,20 @@ Compile and run the file using the TypeScript compiler from the terminal:
     $ node_modules/typescript/bin/tsc -sourcemap demo.ts
     $ node demo.js
 
-    demo.ts:6
+    demo.ts:5
       bar() { throw new Error('this is a demo'); }
-                   ^
+                    ^
     Error: this is a demo
-        at Foo.bar (demo.ts:6:16)
-        at new Foo (demo.ts:5:23)
-        at Object.<anonymous> (demo.ts:8)
-        at Module._compile (module.js:449:26)
-        at Object.Module._extensions..js (module.js:467:10)
+        at Foo.bar (demo.ts:5:17)
+        at new Foo (demo.ts:4:24)
+        at Object.<anonymous> (demo.ts:7:1)
+        at Module._compile (module.js:456:26)
+        at Object.Module._extensions..js (module.js:474:10)
         at Module.load (module.js:356:32)
         at Function.Module._load (module.js:312:12)
-        at Module.runMain (module.js:492:10)
-        at process.startup.processNextTick.process._tickCallback (node.js:244:9)
+        at Function.Module.runMain (module.js:497:10)
+        at startup (node.js:119:16)
+        at node.js:901:3
 
 #### CoffeeScript Demo
 
@@ -143,20 +145,20 @@ Compile and run the file using the CoffeeScript compiler from the terminal:
     $ node_modules/coffee-script/bin/coffee --map --compile demo.coffee
     $ node demo.js
 
-    demo.coffee:4
+    demo.coffee:3
       bar = -> throw new Error 'this is a demo'
-                        ^
+                         ^
     Error: this is a demo
-        at bar (demo.coffee:4:21)
-        at foo (demo.coffee:5:3)
-        at Object.<anonymous> (demo.coffee:6)
-        at Object.<anonymous> (demo.coffee:2)
-        at Module._compile (module.js:449:26)
-        at Object.Module._extensions..js (module.js:467:10)
+        at bar (demo.coffee:3:22)
+        at foo (demo.coffee:4:3)
+        at Object.<anonymous> (demo.coffee:5:1)
+        at Object.<anonymous> (demo.coffee:1:1)
+        at Module._compile (module.js:456:26)
+        at Object.Module._extensions..js (module.js:474:10)
         at Module.load (module.js:356:32)
         at Function.Module._load (module.js:312:12)
-        at Module.runMain (module.js:492:10)
-        at process.startup.processNextTick.process._tickCallback (node.js:244:9)
+        at Function.Module.runMain (module.js:497:10)
+        at startup (node.js:119:16)
 
 ## License
 

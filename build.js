@@ -18,7 +18,7 @@ child_process.exec('node_modules/browserify/bin/cmd.js .temp.js', function(error
   ].join('\n');
   var code = [
     '(this["define"] || function(name, callback) { this["sourceMapSupport"] = callback(); })("browser-source-map-support", function(sourceMapSupport) {',
-    stdout.replace(/\bbyte\b/g, 'bite').replace(/@license/g, 'license'),
+    stdout.replace(/\bbyte\b/g, 'bite').replace(new RegExp(__dirname + '/', 'g'), '').replace(/@license/g, 'license'),
     'return sourceMapSupport});',
   ].join('\n');
 
