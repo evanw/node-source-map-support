@@ -68,10 +68,10 @@ function retrieveSourceMapURL(source) {
     if (sourceMapHeader) {
       return sourceMapHeader;
     }
-  } else {
-    fileData = retrieveFile(source);
   }
+
   // Get the URL of the source map
+  fileData = retrieveFile(source);
   var match = /\/\/[#@]\s*sourceMappingURL=(.*)\s*$/m.exec(fileData);
   if (!match) return null;
   return match[1];

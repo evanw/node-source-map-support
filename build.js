@@ -4,9 +4,14 @@ var fs = require('fs');
 var querystring = require('querystring');
 var child_process = require('child_process');
 
+function run(command, callback) {
+  console.log(command);
+  child_process.exec(command, callback);
+}
+
 // Use browserify to package up source-map-support.js
 fs.writeFileSync('.temp.js', 'sourceMapSupport = require("./source-map-support");');
-child_process.exec('node_modules/browserify/bin/cmd.js .temp.js', function(error, stdout) {
+run('node_modules/browserify/bin/cmd.js .temp.js', function(error, stdout) {
   if (error) throw error;
 
   // Wrap the code so it works both as a normal <script> module and as an AMD module
@@ -29,7 +34,7 @@ child_process.exec('node_modules/browserify/bin/cmd.js .temp.js', function(error
     output_format: 'text',
     js_code: code
   }));
-  child_process.exec('curl -d @.temp.js "http://closure-compiler.appspot.com/compile"', function(error, stdout) {
+  run('curl -d @.temp.js "http://closure-compiler.appspot.com/compile"', function(error, stdout) {
     if (error) throw error;
     var code = header + '\n' + stdout;
     fs.unlinkSync('.temp.js');
@@ -39,19 +44,26 @@ child_process.exec('node_modules/browserify/bin/cmd.js .temp.js', function(error
 });
 
 // Build the AMD test
-child_process.exec('node_modules/coffee-script/bin/coffee --map --compile amd-test/script.coffee', function(error) {
+run('node_modules/coffee-script/bin/coffee --map --compile amd-test/script.coffee', function(error) {
   if (error) throw error;
 });
 
 // Build the browserify test
-child_process.exec('node_modules/coffee-script/bin/coffee --map --compile browserify-test/script.coffee', function(error) {
+run('node_modules/coffee-script/bin/coffee --map --compile browserify-test/script.coffee', function(error) {
   if (error) throw error;
-  child_process.exec('node_modules/browserify/bin/cmd.js --debug browserify-test/script.js > browserify-test/compiled.js', function(error) {
+  run('node_modules/browserify/bin/cmd.js --debug browserify-test/script.js > browserify-test/compiled.js', function(error) {
     if (error) throw error;
   })
 });
 
 // Build the browser test
-child_process.exec('node_modules/coffee-script/bin/coffee --map --compile browser-test/script.coffee', function(error) {
+run('node_modules/coffee-script/bin/coffee --map --compile browser-test/script.coffee', function(error) {
   if (error) throw error;
+});
+
+// Build the header test
+run('node_modules/coffee-script/bin/coffee --map --compile header-test/script.coffee', function(error) {
+  if (error) throw error;
+  var contents = fs.readFileSync('header-test/script.js', 'utf8');
+  fs.writeFileSync('header-test/script.js', contents.replace(/\/\/# sourceMappingURL=.*/g, ''))
 });
