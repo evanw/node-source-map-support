@@ -53,17 +53,38 @@ function supportRelativeURL(file, url) {
   return protocol + path.resolve(dir.slice(protocol.length), url);
 }
 
+function retrieveSourceMapURL(source) {
+  var fileData;
+
+  if (isInBrowser()) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', source, false);
+    xhr.send(null);
+    fileData = xhr.readyState === 4 ? xhr.responseText : null;
+
+    // Support providing a sourceMappingURL via the SourceMap header
+    var sourceMapHeader = xhr.getResponseHeader("SourceMap") ||
+                          xhr.getResponseHeader("X-SourceMap");
+    if (sourceMapHeader) {
+      return sourceMapHeader;
+    }
+  } else {
+    fileData = retrieveFile(source);
+  }
+  // Get the URL of the source map
+  var match = /\/\/[#@]\s*sourceMappingURL=(.*)\s*$/m.exec(fileData);
+  if (!match) return null;
+  return match[1];
+};
+
 // Can be overridden by the retrieveSourceMap option to install. Takes a
 // generated source filename; returns a {map, optional url} object, or null if
 // there is no source map.  The map field may be either a string or the parsed
 // JSON object (ie, it must be a valid argument to the SourceMapConsumer
 // constructor).
 function retrieveSourceMap(source) {
-  // Get the URL of the source map
-  var fileData = retrieveFile(source);
-  var match = /\/\/[#@]\s*sourceMappingURL=(.*)\s*$/m.exec(fileData);
-  if (!match) return null;
-  var sourceMappingURL = match[1];
+  var sourceMappingURL = retrieveSourceMapURL(source);
+  if (!sourceMappingURL) return null;
 
   // Read the contents of the source map
   var sourceMapData;
