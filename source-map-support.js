@@ -111,7 +111,8 @@ function retrieveSourceMap(source) {
 
 function mapSourcePosition(position) {
   var sourceMap = sourceMapCache[position.source];
-  if (!sourceMap) {
+
+  if (sourceMap === undefined) {
     // Call the (overrideable) retrieveSourceMap function to get the source map.
     var urlAndMap = retrieveSourceMap(position.source);
     if (urlAndMap) {
@@ -131,6 +132,8 @@ function mapSourcePosition(position) {
           }
         });
       }
+    } else {
+      sourceMapCache[position.source] = null;
     }
   }
 
