@@ -131,11 +131,16 @@ function mapSourcePosition(position) {
           }
         });
       }
+    } else {
+      sourceMap = sourceMapCache[position.source] = {
+        url: null,
+        map: null
+      };
     }
   }
 
   // Resolve the source URL relative to the URL of the source map
-  if (sourceMap) {
+  if (sourceMap && sourceMap.map) {
     var originalPosition = sourceMap.map.originalPositionFor(position);
 
     // Only return the original position if a matching line was found. If no
