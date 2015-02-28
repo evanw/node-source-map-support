@@ -357,3 +357,28 @@ it('sourcesContent', function(done) {
     /^    at foo \(.*\/original\.js:1002:5\)$/
   ]);
 });
+
+it('missing source maps should also be cached', function(done) {
+  compareStdout(done, createSingleLineSourceMap(), [
+    '',
+    'var count = 0;',
+    'function foo() {',
+    '  console.log(new Error("this is the error").stack.split("\\n").slice(0, 2).join("\\n"));',
+    '}',
+    'require("./source-map-support").install({',
+    '  retrieveSourceMap: function(name) {',
+    '    if (/\\.generated.js$/.test(name)) count++;',
+    '    return null;',
+    '  }',
+    '});',
+    'process.nextTick(foo);',
+    'process.nextTick(foo);',
+    'process.nextTick(function() { console.log(count); });',
+  ], [
+    'Error: this is the error',
+    /^    at foo \(.*\/.generated.js:4:15\)$/,
+    'Error: this is the error',
+    /^    at foo \(.*\/.generated.js:4:15\)$/,
+    '1', // The retrieval should only be attempted once
+  ]);
+});
