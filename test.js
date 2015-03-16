@@ -296,6 +296,17 @@ it('handleUncaughtExceptions is false', function(done) {
   ]);
 });
 
+it('handleUncaughtExceptions is true with existing listener', function(done) {
+  compareStdout(done, createSingleLineSourceMap(), [
+    'process.on("uncaughtException", function() { console.log("exception handler"); });',
+    'function foo() { throw new Error("this is the error"); }',
+    'require("./source-map-support").install({ handleUncaughtExceptions: false });',
+    'process.nextTick(foo);'
+  ], [
+    'exception handler'
+  ]);
+});
+
 it('default options with empty source map', function(done) {
   compareStdout(done, createEmptySourceMap(), [
     '',
