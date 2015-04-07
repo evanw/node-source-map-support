@@ -110,6 +110,10 @@ function retrieveSourceMap(source) {
 }
 
 function mapSourcePosition(position) {
+  if (!isInBrowser() && position.line === 1) {
+    position.column -= 62
+  }
+
   var sourceMap = sourceMapCache[position.source];
   if (!sourceMap) {
     // Call the (overrideable) retrieveSourceMap function to get the source map.
