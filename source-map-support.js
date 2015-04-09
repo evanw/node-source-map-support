@@ -72,9 +72,13 @@ function retrieveSourceMapURL(source) {
 
   // Get the URL of the source map
   fileData = retrieveFile(source);
-  var match = /\/\/[#@]\s*sourceMappingURL=([^'"]+)\s*$/m.exec(fileData);
-  if (!match) return null;
-  return match[1];
+  var re = /\/\/[#@]\s*sourceMappingURL=([^'"]+)\s*$/mg;
+  // Keep executing the search to find the *last* sourceMappingURL to avoid
+  // picking up sourceMappingURLs from comments, strings, etc.
+  var lastMatch, match;
+  while (match = re.exec(fileData)) lastMatch = match;
+  if (!lastMatch) return null;
+  return lastMatch[1];
 };
 
 // Can be overridden by the retrieveSourceMap option to install. Takes a

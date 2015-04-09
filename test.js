@@ -250,6 +250,16 @@ it('sourcesContent with data URL', function() {
   ]);
 });
 
+it('finds the last sourceMappingURL', function() {
+  compareStackTrace(createMultiLineSourceMapWithSourcesContent(), [
+    '//# sourceMappingURL=missing.map.js',  // NB: compareStackTrace adds another source mapping.
+    'throw new Error("test");'
+  ], [
+    'Error: test',
+    /^    at Object\.exports\.test \(.*\/original.js:1002:5\)$/
+  ]);
+});
+
 it('default options', function(done) {
   compareStdout(done, createSingleLineSourceMap(), [
     '',
