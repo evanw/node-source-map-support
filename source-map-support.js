@@ -267,10 +267,16 @@ function wrapCallSite(frame) {
   // from getScriptNameOrSourceURL() instead
   var source = frame.getFileName() || frame.getScriptNameOrSourceURL();
   if (source) {
+    var line = frame.getLineNumber();
+    var column = frame.getColumnNumber() - 1;
+    if (line ===1 && !isInBrowser()){
+      // assuming we have to exclude "(function (exports, require, module, __filename, __dirname) { "
+      column -= 62;
+    }
     var position = mapSourcePosition({
       source: source,
-      line: frame.getLineNumber(),
-      column: frame.getColumnNumber() - 1
+      line: line,
+      column: column
     });
     frame = cloneCallSite(frame);
     frame.getFileName = function() { return position.source; };
