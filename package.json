@@ -4,7 +4,7 @@
   "version": "0.2.10",
   "main": "./source-map-support.js",
   "scripts": {
-    "test": "node_modules/mocha/bin/mocha"
+    "test": "mocha"
   },
   "dependencies": {
     "source-map": "0.1.32"
