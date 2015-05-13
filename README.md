@@ -1,5 +1,8 @@
 # Source Map Support
 
+Forked from [evanw/node-source-map-support](https://github.com/evanw/node-source-map-support/).
+
+
 This module provides source map support for stack traces in node via the [V8 stack trace API](http://code.google.com/p/v8/wiki/JavaScriptStackTraceApi). It uses the [source-map](https://github.com/mozilla/source-map) module to replace the paths and line numbers of source-mapped files with their original paths and line numbers. The output mimics node's stack trace format with the goal of making every compile-to-JS language more of a first-class citizen. Source maps are completely general (not specific to any one language) so you can use source maps with multiple compile-to-JS languages in the same node process.
 
 ## Installation and Usage

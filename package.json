@@ -1,5 +1,5 @@
 {
-  "name": "source-map-support",
+  "name": "ljve-source-map-support",
   "description": "Fixes stack traces for files with source maps",
   "version": "0.2.10",
   "main": "./source-map-support.js",
@@ -16,10 +16,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/evanw/node-source-map-support"
+    "url": "https://github.com/marcominetti/node-source-map-support"
   },
   "bugs": {
-    "url": "https://github.com/evanw/node-source-map-support/issues"
+    "url": "https://github.com/marcominetti/node-source-map-support/issues"
   },
   "licenses": [
     {
