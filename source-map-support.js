@@ -341,7 +341,9 @@ function getErrorSource(error) {
 
 // Mimic node's stack trace printing when an exception escapes the process
 function handleUncaughtExceptions(error) {
-  if (!error || !error.stack) {
+  if (process.listeners('uncaughtException').length > 1) {
+    return;
+  } else if (!error || !error.stack) {
     console.log('Uncaught exception:', error);
   } else {
     var source = getErrorSource(error);
