@@ -110,6 +110,12 @@ function retrieveSourceMap(source) {
 }
 
 function mapSourcePosition(position) {
+  // Fix position in Node where some (internal) code is prepended.
+  // See https://github.com/evanw/node-source-map-support/issues/36
+  if (!isInBrowser() && position.line === 1) {
+    position.column -= 62
+  }
+
   var sourceMap = sourceMapCache[position.source];
   if (!sourceMap) {
     // Call the (overrideable) retrieveSourceMap function to get the source map.
