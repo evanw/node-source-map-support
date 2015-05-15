@@ -4,6 +4,7 @@
   "version": "0.2.10",
   "main": "./source-map-support.js",
   "scripts": {
+    "build": "node build.js",
     "test": "mocha"
   },
   "dependencies": {
