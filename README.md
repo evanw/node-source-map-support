@@ -15,6 +15,23 @@ Source maps can be generated using libraries such as [source-map-index-generator
 
 The path should either be absolute or relative to the compiled file.
 
+It is also possible to to install the source map support directly by
+requiring the `register` module which can be handy with ES6:
+
+```javascript
+import 'source-map-support/register'
+
+// Instead of:
+import sourceMapSupport from 'source-map-support'
+sourceMapSupport.install()
+```
+
+It is also very useful with Mocha:
+
+```
+mocha --require source-map-support/register tests/
+```
+
 #### Browser support
 
 This library also works in Chrome. While the DevTools console already supports source maps, the V8 engine doesn't and `Error.prototype.stack` will be incorrect without this library. Everything will just work if you deploy your source files using [browserify](http://browserify.org/). Just make sure to pass the `--debug` flag to the browserify command so your source maps are included in the bundled code.
