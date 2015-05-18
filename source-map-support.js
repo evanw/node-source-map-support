@@ -100,7 +100,7 @@ function retrieveSourceMap(source) {
   } else {
     // Support source map URLs relative to the source URL
     sourceMappingURL = supportRelativeURL(source, sourceMappingURL);
-    sourceMapData = retrieveFile(sourceMappingURL, 'utf8');
+    sourceMapData = retrieveFile(sourceMappingURL);
   }
 
   if (!sourceMapData) {
