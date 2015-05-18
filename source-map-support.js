@@ -261,7 +261,10 @@ function cloneCallSite(frame) {
   return object;
 }
 
-function wrapCallSite(frame, isFromModule) {
+function wrapCallSite(frame, offset) {
+  if (!offset) {
+    offset = 0;
+  }
   // Most call sites will return the source file from getFileName(), but code
   // passed to eval() ending in "//# sourceURL=..." will return the source file
   // from getScriptNameOrSourceURL() instead
@@ -272,8 +275,7 @@ function wrapCallSite(frame, isFromModule) {
       line: frame.getLineNumber(),
       // Fix position in Node where some (internal) code is prepended.
       // See https://github.com/evanw/node-source-map-support/issues/36
-      // The 63 is because node has a 62 module header.
-      column: frame.getColumnNumber() - (isFromModule ? 63 : 1)
+      column: frame.getColumnNumber() - (1 + offset)
     };
     position = mapSourcePosition(position);
     frame = cloneCallSite(frame);
@@ -307,11 +309,11 @@ function prepareStackTrace(error, stack) {
   return error + stack.map(function(frame, index) {
     // Fix position in Node where some (internal) code is prepended.
     // See https://github.com/evanw/node-source-map-support/issues/36
-    var isFromModule = (!isInBrowser() && 
+    var isFromModuleAndFirstLine = (!isInBrowser() && 
       frame.getLineNumber() === 1 &&
       index + 1 < stack.length && 
       stack[index + 1].getFileName() === 'module.js');
-    return '\n    at ' + wrapCallSite(frame, isFromModule);
+    return '\n    at ' + wrapCallSite(frame, isFromModuleAndFirstLine ? 62 : 0);
   }).join('');
 }
 
