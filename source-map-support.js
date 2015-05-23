@@ -335,7 +335,7 @@ function getErrorSource(error) {
     if (contents) {
       var code = contents.split(/(?:\r\n|\r|\n)/)[line - 1];
       if (code) {
-        return '\n' + source + ':' + line + '\n' + code + '\n' +
+        return source + ':' + line + '\n' + code + '\n' +
           new Array(column).join(' ') + '^';
       }
     }
@@ -349,7 +349,10 @@ function handleUncaughtExceptions(error) {
     console.error('Uncaught exception:', error);
   } else {
     var source = getErrorSource(error);
-    if (source !== null) console.error(source);
+    if (source !== null) {
+      console.error();
+      console.error(source);
+    }
     console.error(error.stack);
   }
   process.exit(1);
