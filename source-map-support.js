@@ -114,12 +114,6 @@ function retrieveSourceMap(source) {
 }
 
 function mapSourcePosition(position) {
-  // Fix position in Node where some (internal) code is prepended.
-  // See https://github.com/evanw/node-source-map-support/issues/36
-  if (!isInBrowser() && position.line === 1) {
-    position.column -= 62
-  }
-
   var sourceMap = sourceMapCache[position.source];
   if (!sourceMap) {
     // Call the (overrideable) retrieveSourceMap function to get the source map.
@@ -271,17 +265,23 @@ function cloneCallSite(frame) {
   return object;
 }
 
-function wrapCallSite(frame) {
+function wrapCallSite(frame, offset) {
+  if (!offset) {
+    offset = 0;
+  }
   // Most call sites will return the source file from getFileName(), but code
   // passed to eval() ending in "//# sourceURL=..." will return the source file
   // from getScriptNameOrSourceURL() instead
   var source = frame.getFileName() || frame.getScriptNameOrSourceURL();
   if (source) {
-    var position = mapSourcePosition({
+    var position = {
       source: source,
       line: frame.getLineNumber(),
-      column: frame.getColumnNumber() - 1
-    });
+      // Fix position in Node where some (internal) code is prepended.
+      // See https://github.com/evanw/node-source-map-support/issues/36
+      column: frame.getColumnNumber() - (1 + offset)
+    };
+    position = mapSourcePosition(position);
     frame = cloneCallSite(frame);
     frame.getFileName = function() { return position.source; };
     frame.getLineNumber = function() { return position.line; };
@@ -310,8 +310,14 @@ function prepareStackTrace(error, stack) {
     fileContentsCache = {};
     sourceMapCache = {};
   }
-  return error + stack.map(function(frame) {
-    return '\n    at ' + wrapCallSite(frame);
+  return error + stack.map(function(frame, index) {
+    // Fix position in Node where some (internal) code is prepended.
+    // See https://github.com/evanw/node-source-map-support/issues/36
+    var isFromModuleAndFirstLine = (!isInBrowser() && 
+      frame.getLineNumber() === 1 &&
+      index + 1 < stack.length && 
+      stack[index + 1].getFileName() === 'module.js');
+    return '\n    at ' + wrapCallSite(frame, isFromModuleAndFirstLine ? 62 : 0);
   }).join('');
 }
 
