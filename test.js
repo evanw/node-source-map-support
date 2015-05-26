@@ -345,8 +345,7 @@ it('specifically requested error source', function(done) {
     'process.on("uncaughtException", function (e) { console.log("SRC:" + sms.getErrorSource(e)); });',
     'process.nextTick(foo);'
   ], [
-    'SRC:',
-    /\/.original.js:1$/,
+    /^SRC:.*\/.original.js:1$/,
     'this is the original code',
     '^'
   ]);
