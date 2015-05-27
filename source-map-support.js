@@ -29,7 +29,10 @@ function retrieveFile(path) {
       var xhr = new XMLHttpRequest();
       xhr.open('GET', path, false);
       xhr.send(null);
-      var contents = xhr.readyState === 4 ? xhr.responseText : null;
+      var contents = null
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        contents = xhr.responseText
+      }
     }
 
     // Otherwise, use the filesystem
