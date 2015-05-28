@@ -55,7 +55,7 @@ run(coffee + ' --map --compile amd-test/script.coffee', function(error) {
 // Build the browserify test
 run(coffee + ' --map --compile browserify-test/script.coffee', function(error) {
   if (error) throw error;
-  run(browserify + ' --debug browserify-test/script.js > browserify-test/compiled.js', function(error) {
+  run(browserify + ' browserify-test/script.js > browserify-test/compiled.js', function(error) {
     if (error) throw error;
   })
 });
