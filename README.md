@@ -184,6 +184,14 @@ Compile and run the file using the CoffeeScript compiler from the terminal:
         at Function.Module.runMain (module.js:497:10)
         at startup (node.js:119:16)
 
+## Tests
+
+This repo contains both automated tests for node and manual tests for the browser. The automated tests can be run using mocha (type `mocha` in the root directory). To run the manual tests:
+
+* Build the tests using `build.js`
+* Visit `amd-test`, `browser-test`, and `browserify-test` using the HTTP protocol (`python -m SimpleHTTPServer` can be used on OS X)
+* For `header-test`, run `server.js` inside that directory and visit http://127.0.0.1:1337/
+
 ## License
 
 This code is available under the [MIT license](http://opensource.org/licenses/MIT).
