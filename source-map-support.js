@@ -19,6 +19,8 @@ function isInBrowser() {
 }
 
 function retrieveFile(path) {
+  // Trim the path to make sure there is no extra whitespace.
+  path = path.trim();
   if (path in fileContentsCache) {
     return fileContentsCache[path];
   }
