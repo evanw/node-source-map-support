@@ -190,6 +190,7 @@ This repo contains both automated tests for node and manual tests for the browse
 
 * Build the tests using `build.js`
 * Visit `amd-test`, `browser-test`, and `browserify-test` using the HTTP protocol (`python -m SimpleHTTPServer` can be used on OS X)
+  * The test `browserify-test` currently isn't working due to a bug with browserify. See pull request #66 for details.
 * For `header-test`, run `server.js` inside that directory and visit http://127.0.0.1:1337/
 
 ## License
