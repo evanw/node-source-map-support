@@ -228,7 +228,7 @@ it('throw with empty source map', function() {
     'throw new Error("test");'
   ], [
     'Error: test',
-    /^    at Object\.exports\.test \(.*\/.generated.js:1:96\)$/
+    /^    at Object\.exports\.test \(.*\/.generated.js:1:34\)$/
   ]);
 });
 
@@ -237,7 +237,7 @@ it('throw with source map with gap', function() {
     'throw new Error("test");'
   ], [
     'Error: test',
-    /^    at Object\.exports\.test \(.*\/.generated.js:1:96\)$/
+    /^    at Object\.exports\.test \(.*\/.generated.js:1:34\)$/
   ]);
 });
 

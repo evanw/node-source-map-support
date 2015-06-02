@@ -270,7 +270,7 @@ function cloneCallSite(frame) {
   return object;
 }
 
-function wrapCallSite(frame, fromModule) {
+function wrapCallSite(frame) {
   // Most call sites will return the source file from getFileName(), but code
   // passed to eval() ending in "//# sourceURL=..." will return the source file
   // from getScriptNameOrSourceURL() instead
@@ -281,8 +281,8 @@ function wrapCallSite(frame, fromModule) {
 
     // Fix position in Node where some (internal) code is prepended.
     // See https://github.com/evanw/node-source-map-support/issues/36
-    if (fromModule && line === 1) {
-      column -= 63;
+    if (line === 1 && !isInBrowser() && !frame.isEval()) {
+      column -= 62;
     }
 
     var position = mapSourcePosition({
@@ -319,14 +319,8 @@ function prepareStackTrace(error, stack) {
     sourceMapCache = {};
   }
 
-  var fromModule =
-    !isInBrowser() &&
-    stack.length &&
-    stack[stack.length - 1].getFileName() === 'module.js'
-  ;
-
   return error + stack.map(function(frame) {
-    return '\n    at ' + wrapCallSite(frame, fromModule);
+    return '\n    at ' + wrapCallSite(frame);
   }).join('');
 }
 
