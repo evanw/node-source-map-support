@@ -7,15 +7,21 @@ This module provides source map support for stack traces in node via the [V8 sta
 
 #### Node support
 
-    npm install source-map-support
+```
+$ npm install source-map-support
+```
 
 Source maps can be generated using libraries such as [source-map-index-generator](https://github.com/twolfson/source-map-index-generator). Once you have a valid source map, insert the following line at the top of your compiled code:
 
-    require('source-map-support').install();
+```js
+require('source-map-support').install();
+```
 
 And place a source mapping comment somewhere in the file (usually done automatically or with an option by your transpiler):
 
-    //# sourceMappingURL=path/to/source.map
+```
+//# sourceMappingURL=path/to/source.map
+```
 
 If multiple sourceMappingURL comments exist in one file, the last sourceMappingURL comment will be
 respected (e.g. if a file mentions the comment in code, or went through multiple transpilers).
@@ -24,7 +30,7 @@ The path should either be absolute or relative to the compiled file.
 It is also possible to to install the source map support directly by
 requiring the `register` module which can be handy with ES6:
 
-```javascript
+```js
 import 'source-map-support/register'
 
 // Instead of:
@@ -35,7 +41,7 @@ sourceMapSupport.install()
 It is also very useful with Mocha:
 
 ```
-mocha --require source-map-support/register tests/
+$ mocha --require source-map-support/register tests/
 ```
 
 #### Browser support
@@ -44,38 +50,46 @@ This library also works in Chrome. While the DevTools console already supports s
 
 This library also works if you use another build process or just include the source files directly. In this case, include the file `browser-source-map-support.js` in your page and call `sourceMapSupport.install()`. It contains the whole library already bundled for the browser using browserify.
 
-    <script src="browser-source-map-support.js"></script>
-    <script>sourceMapSupport.install();</script>
+```html
+<script src="browser-source-map-support.js"></script>
+<script>sourceMapSupport.install();</script>
+```
 
 This library also works if you use AMD (Asynchronous Module Definition), which is used in tools like [RequireJS](http://requirejs.org/). Just list `browser-source-map-support` as a dependency:
 
-    <script>
-      define(['browser-source-map-support'], function(sourceMapSupport) {
-        sourceMapSupport.install();
-      });
-    </script>
+```html
+<script>
+  define(['browser-source-map-support'], function(sourceMapSupport) {
+    sourceMapSupport.install();
+  });
+</script>
+```
 
 ## Options
 
 This module installs two things: a change to the `stack` property on `Error` objects and a handler for uncaught exceptions that mimics node's default exception handler (the handler can be seen in the demos below). You may want to disable the handler if you have your own uncaught exception handler. This can be done by passing an argument to the installer:
 
-    require('source-map-support').install({
-      handleUncaughtExceptions: false
-    });
+```js
+require('source-map-support').install({
+  handleUncaughtExceptions: false
+});
+```
 
 This module loads source maps from the filesystem by default. You can provide alternate loading behavior through a callback as shown below. For example, [Meteor](https://github.com/meteor) keeps all source maps cached in memory to avoid disk access.
 
-    require('source-map-support').install({
-      retrieveSourceMap: function(source) {
-        if (source === 'compiled.js') {
-          return {
-            url: 'original.js',
-            map: fs.readFileSync('compiled.js.map', 'utf8')
-          };
-        }
-        return null;
-      }
-    });
+```js
+require('source-map-support').install({
+  retrieveSourceMap: function(source) {
+    if (source === 'compiled.js') {
+      return {
+        url: 'original.js',
+        map: fs.readFileSync('compiled.js.map', 'utf8')
+      };
+    }
+    return null;
+  }
+});
+```
 
 ## Demos
 
@@ -83,106 +97,122 @@ This module loads source maps from the filesystem by default. You can provide al
 
 original.js:
 
-    throw new Error('test'); // This is the original code
+```js
+throw new Error('test'); // This is the original code
+```
 
 compiled.js:
 
-    require('source-map-support').install();
+```js
+require('source-map-support').install();
 
-    throw new Error('test'); // This is the compiled code
-    // The next line defines the sourceMapping.
-    //# sourceMappingURL=compiled.js.map
+throw new Error('test'); // This is the compiled code
+// The next line defines the sourceMapping.
+//# sourceMappingURL=compiled.js.map
+```
 
 compiled.js.map:
 
-    {
-      "version": 3,
-      "file": "compiled.js",
-      "sources": ["original.js"],
-      "names": [],
-      "mappings": ";;;AAAA,MAAM,IAAI"
-    }
+```json
+{
+  "version": 3,
+  "file": "compiled.js",
+  "sources": ["original.js"],
+  "names": [],
+  "mappings": ";;;AAAA,MAAM,IAAI"
+}
+```
 
 Run compiled.js using node (notice how the stack trace uses original.js instead of compiled.js):
 
-    $ node compiled.js
+```
+$ node compiled.js
 
-    original.js:1
-    throw new Error('test'); // This is the original code
-          ^
-    Error: test
-        at Object.<anonymous> (original.js:1:7)
-        at Module._compile (module.js:456:26)
-        at Object.Module._extensions..js (module.js:474:10)
-        at Module.load (module.js:356:32)
-        at Function.Module._load (module.js:312:12)
-        at Function.Module.runMain (module.js:497:10)
-        at startup (node.js:119:16)
-        at node.js:901:3
+original.js:1
+throw new Error('test'); // This is the original code
+      ^
+Error: test
+    at Object.<anonymous> (original.js:1:7)
+    at Module._compile (module.js:456:26)
+    at Object.Module._extensions..js (module.js:474:10)
+    at Module.load (module.js:356:32)
+    at Function.Module._load (module.js:312:12)
+    at Function.Module.runMain (module.js:497:10)
+    at startup (node.js:119:16)
+    at node.js:901:3
+```
 
 #### TypeScript Demo
 
 demo.ts:
 
-    declare function require(name: string);
-    require('source-map-support').install();
-    class Foo {
-      constructor() { this.bar(); }
-      bar() { throw new Error('this is a demo'); }
-    }
-    new Foo();
+```typescript
+declare function require(name: string);
+require('source-map-support').install();
+class Foo {
+  constructor() { this.bar(); }
+  bar() { throw new Error('this is a demo'); }
+}
+new Foo();
+```
 
 Compile and run the file using the TypeScript compiler from the terminal:
 
-    $ npm install source-map-support typescript
-    $ node_modules/typescript/bin/tsc -sourcemap demo.ts
-    $ node demo.js
+```
+$ npm install source-map-support typescript
+$ node_modules/typescript/bin/tsc -sourcemap demo.ts
+$ node demo.js
 
-    demo.ts:5
-      bar() { throw new Error('this is a demo'); }
-                    ^
-    Error: this is a demo
-        at Foo.bar (demo.ts:5:17)
-        at new Foo (demo.ts:4:24)
-        at Object.<anonymous> (demo.ts:7:1)
-        at Module._compile (module.js:456:26)
-        at Object.Module._extensions..js (module.js:474:10)
-        at Module.load (module.js:356:32)
-        at Function.Module._load (module.js:312:12)
-        at Function.Module.runMain (module.js:497:10)
-        at startup (node.js:119:16)
-        at node.js:901:3
-
+demo.ts:5
+  bar() { throw new Error('this is a demo'); }
+                ^
+Error: this is a demo
+    at Foo.bar (demo.ts:5:17)
+    at new Foo (demo.ts:4:24)
+    at Object.<anonymous> (demo.ts:7:1)
+    at Module._compile (module.js:456:26)
+    at Object.Module._extensions..js (module.js:474:10)
+    at Module.load (module.js:356:32)
+    at Function.Module._load (module.js:312:12)
+    at Function.Module.runMain (module.js:497:10)
+    at startup (node.js:119:16)
+    at node.js:901:3
+```
+    
 #### CoffeeScript Demo
 
 demo.coffee:
 
-    require('source-map-support').install()
-    foo = ->
-      bar = -> throw new Error 'this is a demo'
-      bar()
-    foo()
+```coffee
+require('source-map-support').install()
+foo = ->
+  bar = -> throw new Error 'this is a demo'
+  bar()
+foo()
+```
 
 Compile and run the file using the CoffeeScript compiler from the terminal:
 
-    $ npm install source-map-support coffee-script
-    $ node_modules/coffee-script/bin/coffee --map --compile demo.coffee
-    $ node demo.js
+```sh
+$ npm install source-map-support coffee-script
+$ node_modules/coffee-script/bin/coffee --map --compile demo.coffee
+$ node demo.js
 
-    demo.coffee:3
-      bar = -> throw new Error 'this is a demo'
-                         ^
-    Error: this is a demo
-        at bar (demo.coffee:3:22)
-        at foo (demo.coffee:4:3)
-        at Object.<anonymous> (demo.coffee:5:1)
-        at Object.<anonymous> (demo.coffee:1:1)
-        at Module._compile (module.js:456:26)
-        at Object.Module._extensions..js (module.js:474:10)
-        at Module.load (module.js:356:32)
-        at Function.Module._load (module.js:312:12)
-        at Function.Module.runMain (module.js:497:10)
-        at startup (node.js:119:16)
+demo.coffee:3
+  bar = -> throw new Error 'this is a demo'
+                     ^
+Error: this is a demo
+    at bar (demo.coffee:3:22)
+    at foo (demo.coffee:4:3)
+    at Object.<anonymous> (demo.coffee:5:1)
+    at Object.<anonymous> (demo.coffee:1:1)
+    at Module._compile (module.js:456:26)
+    at Object.Module._extensions..js (module.js:474:10)
+    at Module.load (module.js:356:32)
+    at Function.Module._load (module.js:312:12)
+    at Function.Module.runMain (module.js:497:10)
+    at startup (node.js:119:16)
+```
 
 ## Tests
 
