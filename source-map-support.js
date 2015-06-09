@@ -97,10 +97,9 @@ function retrieveSourceMap(source) {
 
   // Read the contents of the source map
   var sourceMapData;
-  var dataUrlPrefix = "data:application/json;base64,";
-  if (sourceMappingURL.slice(0, dataUrlPrefix.length).toLowerCase() == dataUrlPrefix) {
+  if(/^data:application\/json[^,]+base64,/.test(sourceMappingURL)) {
     // Support source map URL as a data url
-    sourceMapData = new Buffer(sourceMappingURL.slice(dataUrlPrefix.length), "base64").toString();
+    sourceMapData = new Buffer(sourceMappingURL.slice(sourceMappingURL.indexOf(',')+1), "base64").toString();
     sourceMappingURL = null;
   } else {
     // Support source map URLs relative to the source URL
