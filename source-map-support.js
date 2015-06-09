@@ -82,8 +82,15 @@ function retrieveSourceMapURL(source) {
   // picking up sourceMappingURLs from comments, strings, etc.
   var lastMatch, match;
   while (match = re.exec(fileData)) lastMatch = match;
-  if (!lastMatch) return null;
-  return lastMatch[1];
+  if (lastMatch) {
+    return lastMatch[1];
+  } else {
+    // Try the .map file
+    mapFile = source + '.map';
+    if (fs.existsSync(mapFile)) {
+      return mapFile;
+    }
+  }
 };
 
 // Can be overridden by the retrieveSourceMap option to install. Takes a
