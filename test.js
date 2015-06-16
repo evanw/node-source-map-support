@@ -391,3 +391,27 @@ it('missing source maps should also be cached', function(done) {
     '1', // The retrieval should only be attempted once
   ]);
 });
+
+/* The following test duplicates some of the code in
+ * `compareStackTrace` but appends a charset to the
+ * source mapping url.
+ */
+it('finds source maps with charset specified', function() {
+  var sourceMap = createMultiLineSourceMap()
+  var source = [ 'throw new Error("test");' ];
+  var expected = [
+    'Error: test',
+    /^    at Object\.exports\.test \(.*\/line1\.js:1001:101\)$/
+  ];
+
+  fs.writeFileSync('.generated.js', 'exports.test = function() {' +
+    source.join('\n') + '};//@ sourceMappingURL=data:application/json;charset=utf8;base64,' +
+    new Buffer(sourceMap.toString()).toString('base64'));
+  try {
+    delete require.cache[require.resolve('./.generated')];
+    require('./.generated').test();
+  } catch (e) {
+    compareLines(e.stack.split('\n'), expected);
+  }
+  fs.unlinkSync('.generated.js');
+});
