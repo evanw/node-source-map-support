@@ -21,6 +21,10 @@ function isInBrowser() {
   return ((typeof window !== 'undefined') && (typeof XMLHttpRequest === 'function'));
 }
 
+function hasGlobalProcessEventEmitter() {
+  return ((typeof process === 'object') && (process !== null) && (typeof process.on === 'function'));
+}
+
 function retrieveFile(path) {
   // Trim the path to make sure there is no extra whitespace.
   path = path.trim();
@@ -418,7 +422,7 @@ exports.install = function(options) {
     // exception handler and the process will still be terminated. However, the
     // generated JavaScript code will be shown above the stack trace instead of
     // the original source code.
-    if (installHandler && !isInBrowser()) {
+    if (installHandler && hasGlobalProcessEventEmitter()) {
       shimEmitUncaughtException();
     }
   }
