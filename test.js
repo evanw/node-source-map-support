@@ -415,3 +415,25 @@ it('finds source maps with charset specified', function() {
   }
   fs.unlinkSync('.generated.js');
 });
+
+it('handleUncaughtExceptions is true with existing listener', function(done) {
+  var source = [
+    'process.on("uncaughtException", function() { /* Silent */ });',
+    'function foo() { throw new Error("this is the error"); }',
+    'require("./source-map-support").install();',
+    'process.nextTick(foo);',
+    '//@ sourceMappingURL=.generated.js.map'
+  ];
+
+  fs.writeFileSync('.original.js', 'this is the original code');
+  fs.writeFileSync('.generated.js.map', createSingleLineSourceMap());
+  fs.writeFileSync('.generated.js', source.join('\n'));
+
+  child_process.exec('node ./.generated', function(error, stdout, stderr) {
+    fs.unlinkSync('.generated.js');
+    fs.unlinkSync('.generated.js.map');
+    fs.unlinkSync('.original.js');
+    assert.equal((stdout + stderr).trim(), '');
+    done();
+  });
+});

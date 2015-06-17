@@ -355,19 +355,33 @@ function getErrorSource(error) {
   return null;
 }
 
-// Mimic node's stack trace printing when an exception escapes the process
-function handleUncaughtExceptions(error) {
-  if (!error || !error.stack) {
-    console.error('Uncaught exception:', error);
-  } else {
-    var source = getErrorSource(error);
-    if (source !== null) {
-      console.error();
-      console.error(source);
-    }
-    console.error(error.stack);
+function printErrorAndExit (error) {
+  var source = getErrorSource(error);
+
+  if (source) {
+    console.error();
+    console.error(source);
   }
+
+  console.error(error.stack);
   process.exit(1);
+}
+
+function shimEmitUncaughtException () {
+  var origEmit = process.emit;
+
+  process.emit = function (type) {
+    if (type === 'uncaughtException') {
+      var hasStack = (arguments[1] && arguments[1].stack);
+      var hasListeners = (this.listeners(type).length > 0);
+
+      if (hasStack && !hasListeners) {
+        return printErrorAndExit(arguments[1]);
+      }
+    }
+
+    return origEmit.apply(this, arguments);
+  }
 }
 
 exports.wrapCallSite = wrapCallSite;
@@ -405,7 +419,7 @@ exports.install = function(options) {
     // generated JavaScript code will be shown above the stack trace instead of
     // the original source code.
     if (installHandler && !isInBrowser()) {
-      process.on('uncaughtException', handleUncaughtExceptions);
+      shimEmitUncaughtException();
     }
   }
 };
