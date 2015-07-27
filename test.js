@@ -416,6 +416,31 @@ it('finds source maps with charset specified', function() {
   fs.unlinkSync('.generated.js');
 });
 
+/* The following test duplicates some of the code in
+ * `compareStackTrace` but appends some code and a
+ * comment to the source mapping url.
+ */
+it('allows code/comments after sourceMappingURL', function() {
+  var sourceMap = createMultiLineSourceMap()
+  var source = [ 'throw new Error("test");' ];
+  var expected = [
+    'Error: test',
+    /^    at Object\.exports\.test \(.*\/line1\.js:1001:101\)$/
+  ];
+
+  fs.writeFileSync('.generated.js', 'exports.test = function() {' +
+    source.join('\n') + '};//# sourceMappingURL=data:application/json;base64,' +
+    new Buffer(sourceMap.toString()).toString('base64') +
+    '\n// Some comment below the sourceMappingURL\nvar foo = 0;');
+  try {
+    delete require.cache[require.resolve('./.generated')];
+    require('./.generated').test();
+  } catch (e) {
+    compareLines(e.stack.split('\n'), expected);
+  }
+  fs.unlinkSync('.generated.js');
+});
+
 it('handleUncaughtExceptions is true with existing listener', function(done) {
   var source = [
     'process.on("uncaughtException", function() { /* Silent */ });',
