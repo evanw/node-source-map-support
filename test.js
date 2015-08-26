@@ -388,6 +388,7 @@ it('missing source maps should also be cached', function(done) {
     '  console.log(new Error("this is the error").stack.split("\\n").slice(0, 2).join("\\n"));',
     '}',
     'require("./source-map-support").install({',
+    '  overrideRetrieveSourceMap: true,',
     '  retrieveSourceMap: function(name) {',
     '    if (/\\.generated.js$/.test(name)) count++;',
     '    return null;',
@@ -401,6 +402,39 @@ it('missing source maps should also be cached', function(done) {
     /^    at foo \(.*\/.generated.js:4:15\)$/,
     'Error: this is the error',
     /^    at foo \(.*\/.generated.js:4:15\)$/,
+    '1', // The retrieval should only be attempted once
+  ]);
+});
+
+it('should consult all retrieve source map providers', function(done) {
+  compareStdout(done, createSingleLineSourceMap(), [
+    '',
+    'var count = 0;',
+    'function foo() {',
+    '  console.log(new Error("this is the error").stack.split("\\n").slice(0, 2).join("\\n"));',
+    '}',
+    'require("./source-map-support").install({',
+    '  retrieveSourceMap: function(name) {',
+    '    if (/\\.generated.js$/.test(name)) count++;',
+    '    return undefined;',
+    '  }',
+    '});',
+    'require("./source-map-support").install({',
+    '  retrieveSourceMap: function(name) {',
+    '    if (/\\.generated.js$/.test(name)) {',
+    '      count++;',
+    '      return ' + JSON.stringify({url: '.original.js', map: createMultiLineSourceMapWithSourcesContent().toJSON()}) + ';',
+    '    }',
+    '  }',
+    '});',
+    'process.nextTick(foo);',
+    'process.nextTick(foo);',
+    'process.nextTick(function() { console.log(count); });',
+  ], [
+    'Error: this is the error',
+    /^    at foo \(.*\/original.js:1004:5\)$/,
+    'Error: this is the error',
+    /^    at foo \(.*\/original.js:1004:5\)$/,
     '1', // The retrieval should only be attempted once
   ]);
 });

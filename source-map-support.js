@@ -3,7 +3,8 @@ var path = require('path');
 var fs = require('fs');
 
 // Only install once if called multiple times
-var alreadyInstalled = false;
+var errorFormatterInstalled = false;
+var uncaughtShimInstalled = false;
 
 // If true, the caches are reset before a stack trace formatting operation
 var emptyCacheBetweenOperations = false;
@@ -20,6 +21,10 @@ var sourceMapCache = {};
 // Regex for detecting source maps
 var reSourceMap = /^data:application\/json[^,]+base64,/;
 
+// Priority list of retrieve handlers
+var retrieveFileHandlers = [];
+var retrieveMapHandlers = [];
+
 function isInBrowser() {
   if (environment === "browser")
     return true;
@@ -32,7 +37,21 @@ function hasGlobalProcessEventEmitter() {
   return ((typeof process === 'object') && (process !== null) && (typeof process.on === 'function'));
 }
 
-function retrieveFile(path) {
+function handlerExec(list) {
+  return function(arg) {
+    for (var i = 0; i < list.length; i++) {
+      var ret = list[i](arg);
+      if (ret) {
+        return ret;
+      }
+    }
+    return null;
+  };
+}
+
+var retrieveFile = handlerExec(retrieveFileHandlers);
+
+retrieveFileHandlers.push(function(path) {
   // Trim the path to make sure there is no extra whitespace.
   path = path.trim();
   if (path in fileContentsCache) {
@@ -60,7 +79,7 @@ function retrieveFile(path) {
   }
 
   return fileContentsCache[path] = contents;
-}
+});
 
 // Support URLs relative to a directory, but be careful about a protocol prefix
 // in case we are in the browser (i.e. directories may start with "http://")
@@ -106,7 +125,8 @@ function retrieveSourceMapURL(source) {
 // there is no source map.  The map field may be either a string or the parsed
 // JSON object (ie, it must be a valid argument to the SourceMapConsumer
 // constructor).
-function retrieveSourceMap(source) {
+var retrieveSourceMap = handlerExec(retrieveMapHandlers);
+retrieveMapHandlers.push(function(source) {
   var sourceMappingURL = retrieveSourceMapURL(source);
   if (!sourceMappingURL) return null;
 
@@ -131,7 +151,7 @@ function retrieveSourceMap(source) {
     url: sourceMappingURL,
     map: sourceMapData
   };
-}
+});
 
 function mapSourcePosition(position) {
   var sourceMap = sourceMapCache[position.source];
@@ -393,7 +413,7 @@ function shimEmitUncaughtException () {
     }
 
     return origEmit.apply(this, arguments);
-  }
+  };
 }
 
 exports.wrapCallSite = wrapCallSite;
@@ -402,33 +422,50 @@ exports.mapSourcePosition = mapSourcePosition;
 exports.retrieveSourceMap = retrieveSourceMap;
 
 exports.install = function(options) {
-  if (!alreadyInstalled) {
-    alreadyInstalled = true;
-    Error.prepareStackTrace = prepareStackTrace;
+  options = options || {};
 
-    // Configure options
-    options = options || {};
-    var installHandler = 'handleUncaughtExceptions' in options ?
-      options.handleUncaughtExceptions : true;
-      
+  if (options.environment) {
+    environment = options.environment;
+    if (["node", "browser", "auto"].indexOf(environment) === -1) {
+      throw new Error("environment " + environment + " was unknown. Available options are {auto, browser, node}")
+    }
+  }
+
+  // Allow sources to be found by methods other than reading the files
+  // directly from disk.
+  if (options.retrieveFile) {
+    if (options.overrideRetrieveFile) {
+      retrieveFileHandlers.length = 0;
+    }
+
+    retrieveFileHandlers.unshift(options.retrieveFile);
+  }
+
+  // Allow source maps to be found by methods other than reading the files
+  // directly from disk.
+  if (options.retrieveSourceMap) {
+    if (options.overrideRetrieveSourceMap) {
+      retrieveMapHandlers.length = 0;
+    }
+
+    retrieveMapHandlers.unshift(options.retrieveSourceMap);
+  }
+
+  // Configure options
+  if (!emptyCacheBetweenOperations) {
     emptyCacheBetweenOperations = 'emptyCacheBetweenOperations' in options ?
       options.emptyCacheBetweenOperations : false;
+  }
 
-    if (options.environment) {
-        environment = options.environment;
-        if (["node", "browser", "auto"].indexOf(environment) === -1)
-            throw new Error("environment " + environment + " was unknown. Available options are {auto, browser, node}")
-    }
-        
-    // Allow sources to be found by methods other than reading the files
-    // directly from disk.
-    if (options.retrieveFile)
-      retrieveFile = options.retrieveFile;
+  // Install the error reformatter
+  if (!errorFormatterInstalled) {
+    errorFormatterInstalled = true;
+    Error.prepareStackTrace = prepareStackTrace;
+  }
 
-    // Allow source maps to be found by methods other than reading the files
-    // directly from disk.
-    if (options.retrieveSourceMap)
-      retrieveSourceMap = options.retrieveSourceMap;
+  if (!uncaughtShimInstalled) {
+    var installHandler = 'handleUncaughtExceptions' in options ?
+      options.handleUncaughtExceptions : true;
 
     // Provide the option to not install the uncaught exception handler. This is
     // to support other uncaught exception handlers (in test frameworks, for
@@ -438,6 +475,7 @@ exports.install = function(options) {
     // generated JavaScript code will be shown above the stack trace instead of
     // the original source code.
     if (installHandler && hasGlobalProcessEventEmitter()) {
+      uncaughtShimInstalled = true;
       shimEmitUncaughtException();
     }
   }
