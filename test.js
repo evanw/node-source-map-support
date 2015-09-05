@@ -459,6 +459,43 @@ it('should consult all retrieve source map providers', function(done) {
   ]);
 });
 
+it('should allow for runtime inline source maps', function(done) {
+  var sourceMap = createMultiLineSourceMapWithSourcesContent();
+
+  fs.writeFileSync('.generated.jss', 'foo');
+
+  compareStdout(function(err) {
+    fs.unlinkSync('.generated.jss');
+    done(err);
+  }, createSingleLineSourceMap(), [
+    'require("./source-map-support").install({',
+    '  hookRequire: true',
+    '});',
+    'require.extensions[".jss"] = function(module, filename) {',
+    '  module._compile(',
+        JSON.stringify([
+          '',
+          'var count = 0;',
+          'function foo() {',
+          '  console.log(new Error("this is the error").stack.split("\\n").slice(0, 2).join("\\n"));',
+          '}',
+          'process.nextTick(foo);',
+          'process.nextTick(foo);',
+          'process.nextTick(function() { console.log(count); });',
+          '//@ sourceMappingURL=data:application/json;charset=utf8;base64,' + new Buffer(sourceMap.toString()).toString('base64')
+        ].join('\n')),
+        ', filename);',
+    '};',
+    'require("./.generated.jss");',
+  ], [
+    'Error: this is the error',
+    /^    at foo \(.*\/original.js:1004:5\)$/,
+    'Error: this is the error',
+    /^    at foo \(.*\/original.js:1004:5\)$/,
+    '0', // The retrieval should only be attempted once
+  ]);
+});
+
 /* The following test duplicates some of the code in
  * `compareStackTrace` but appends a charset to the
  * source mapping url.

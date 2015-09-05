@@ -5,6 +5,7 @@ var fs = require('fs');
 // Only install once if called multiple times
 var errorFormatterInstalled = false;
 var uncaughtShimInstalled = false;
+var requireHookInstalled = false;
 
 // If true, the caches are reset before a stack trace formatting operation
 var emptyCacheBetweenOperations = false;
@@ -453,6 +454,18 @@ exports.install = function(options) {
     }
 
     retrieveMapHandlers.unshift(options.retrieveSourceMap);
+  }
+
+  // Support runtime transpilers that include inline source maps
+  if (options.hookRequire && !requireHookInstalled && !isInBrowser()) {
+    requireHookInstalled = true;
+    var Module = require('module');
+    var $compile = Module.prototype._compile;
+    Module.prototype._compile = function(content, filename) {
+      fileContentsCache[filename] = content;
+      sourceMapCache[filename] = undefined;
+      return $compile.call(this, content, filename);
+    };
   }
 
   // Configure options
