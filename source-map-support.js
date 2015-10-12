@@ -430,6 +430,7 @@ exports.fileContentsCache = function(path, contents) {
   }
 };
 exports.isInBrowser = isInBrowser;
+exports.printErrorAndExit = printErrorAndExit;
 
 exports.install = function(options) {
   options = options || {};
