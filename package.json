@@ -8,6 +8,7 @@
     "test": "mocha"
   },
   "dependencies": {
+    "detect-node": "^2.0.3",
     "source-map": "0.1.32"
   },
   "devDependencies": {

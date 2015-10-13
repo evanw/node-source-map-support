@@ -1,6 +1,7 @@
 var SourceMapConsumer = require('source-map').SourceMapConsumer;
 var path = require('path');
 var fs = require('fs');
+var isNode = require('detect-node');
 
 // Only install once if called multiple times
 var alreadyInstalled = false;
@@ -18,7 +19,7 @@ var sourceMapCache = {};
 var reSourceMap = /^data:application\/json[^,]+base64,/;
 
 function isInBrowser() {
-  return ((typeof window !== 'undefined') && (typeof XMLHttpRequest === 'function'));
+  return !isNode;
 }
 
 function hasGlobalProcessEventEmitter() {
