@@ -1,13 +1,16 @@
 var SourceMapConsumer = require('source-map').SourceMapConsumer;
 var path = require('path');
 var fs = require('fs');
-var isNode = require('detect-node');
 
 // Only install once if called multiple times
 var alreadyInstalled = false;
 
 // If true, the caches are reset before a stack trace formatting operation
 var emptyCacheBetweenOperations = false;
+
+// If true is set to 'node', environment is assumed to node regardless
+// of whether or not dom globals exists, i.e. in the case where the browser is emulated with jsdom
+var assumeNodeEnvironment = false;
 
 // Maps a file path to a string containing the file contents
 var fileContentsCache = {};
@@ -19,7 +22,7 @@ var sourceMapCache = {};
 var reSourceMap = /^data:application\/json[^,]+base64,/;
 
 function isInBrowser() {
-  return !isNode;
+  return !assumeNodeEnvironment && ((typeof window !== 'undefined') && (typeof XMLHttpRequest === 'function'));
 }
 
 function hasGlobalProcessEventEmitter() {
@@ -406,6 +409,8 @@ exports.install = function(options) {
       options.handleUncaughtExceptions : true;
     emptyCacheBetweenOperations = 'emptyCacheBetweenOperations' in options ?
       options.emptyCacheBetweenOperations : false;
+    assumeNodeEnvironment = 'assumeNodeEnvironment' in options ?
+      options.assumeNodeEnvironment : false;
 
     // Allow sources to be found by methods other than reading the files
     // directly from disk.
