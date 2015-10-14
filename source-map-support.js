@@ -10,7 +10,7 @@ var emptyCacheBetweenOperations = false;
 
 // If true is set to 'node', environment is assumed to node regardless
 // of whether or not dom globals exists, i.e. in the case where the browser is emulated with jsdom
-var assumeNodeEnvironment = false;
+var environment = "auto";
 
 // Maps a file path to a string containing the file contents
 var fileContentsCache = {};
@@ -22,7 +22,13 @@ var sourceMapCache = {};
 var reSourceMap = /^data:application\/json[^,]+base64,/;
 
 function isInBrowser() {
-  return !assumeNodeEnvironment && ((typeof window !== 'undefined') && (typeof XMLHttpRequest === 'function'));
+  if (environment === "browser")
+    return true;
+  if (environement === "node")
+    return false;
+  if (environment === "auto")
+    return ((typeof window !== 'undefined') && (typeof XMLHttpRequest === 'function'));
+  throw new Error("environment " + environement + " was unknown. Available options are {auto, browser, node}")
 }
 
 function hasGlobalProcessEventEmitter() {
@@ -409,8 +415,6 @@ exports.install = function(options) {
       options.handleUncaughtExceptions : true;
     emptyCacheBetweenOperations = 'emptyCacheBetweenOperations' in options ?
       options.emptyCacheBetweenOperations : false;
-    assumeNodeEnvironment = 'assumeNodeEnvironment' in options ?
-      options.assumeNodeEnvironment : false;
 
     // Allow sources to be found by methods other than reading the files
     // directly from disk.
