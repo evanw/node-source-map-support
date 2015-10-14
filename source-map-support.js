@@ -8,8 +8,7 @@ var alreadyInstalled = false;
 // If true, the caches are reset before a stack trace formatting operation
 var emptyCacheBetweenOperations = false;
 
-// If true is set to 'node', environment is assumed to node regardless
-// of whether or not dom globals exists, i.e. in the case where the browser is emulated with jsdom
+// Supports {browser, node, auto}
 var environment = "auto";
 
 // Maps a file path to a string containing the file contents
