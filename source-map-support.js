@@ -412,8 +412,12 @@ exports.install = function(options) {
     options = options || {};
     var installHandler = 'handleUncaughtExceptions' in options ?
       options.handleUncaughtExceptions : true;
+      
     emptyCacheBetweenOperations = 'emptyCacheBetweenOperations' in options ?
       options.emptyCacheBetweenOperations : false;
+
+    environment = 'environment' in options ?
+      options.environment : "auto";
 
     // Allow sources to be found by methods other than reading the files
     // directly from disk.
