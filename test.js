@@ -107,7 +107,13 @@ function compareStdout(done, sourceMap, source, expected) {
     '//@ sourceMappingURL=.generated.js.map');
   child_process.exec('node ./.generated', function(error, stdout, stderr) {
     try {
-      compareLines((stdout + stderr).trim().split('\n'), expected);
+      compareLines(
+        (stdout + stderr)
+          .trim()
+          .split('\n')
+          .filter(function (line) { return line !== '' }), // Empty lines are not relevant.
+        expected
+      );
     } catch (e) {
       return done(e);
     }
@@ -162,7 +168,10 @@ it('eval', function() {
     'eval("throw new Error(\'test\')");'
   ], [
     'Error: test',
-    /^    at Object\.eval \(eval at <anonymous> \(.*\/line1\.js:1001:101\)/,
+
+    // Before Node 4, `Object.eval`, after just `eval`.
+    /^    at (?:Object\.)?eval \(eval at <anonymous> \(.*\/line1\.js:1001:101\)/,
+
     /^    at Object\.exports\.test \(.*\/line1\.js:1001:101\)$/
   ]);
 });
@@ -172,8 +181,8 @@ it('eval inside eval', function() {
     'eval("eval(\'throw new Error(\\"test\\")\')");'
   ], [
     'Error: test',
-    /^    at Object\.eval \(eval at <anonymous> \(eval at <anonymous> \(.*\/line1\.js:1001:101\)/,
-    /^    at Object\.eval \(eval at <anonymous> \(.*\/line1\.js:1001:101\)/,
+    /^    at (?:Object\.)?eval \(eval at <anonymous> \(eval at <anonymous> \(.*\/line1\.js:1001:101\)/,
+    /^    at (?:Object\.)?eval \(eval at <anonymous> \(.*\/line1\.js:1001:101\)/,
     /^    at Object\.exports\.test \(.*\/line1\.js:1001:101\)$/
   ]);
 });
@@ -197,7 +206,7 @@ it('eval with sourceURL', function() {
     'eval("throw new Error(\'test\')//@ sourceURL=sourceURL.js");'
   ], [
     'Error: test',
-    '    at Object.eval (sourceURL.js:1:7)',
+    /^    at (?:Object\.)?eval \(sourceURL\.js:1:7\)$/,
     /^    at Object\.exports\.test \(.*\/line1\.js:1001:101\)$/
   ]);
 });
@@ -207,8 +216,8 @@ it('eval with sourceURL inside eval', function() {
     'eval("eval(\'throw new Error(\\"test\\")//@ sourceURL=sourceURL.js\')");'
   ], [
     'Error: test',
-    '    at Object.eval (sourceURL.js:1:7)',
-    /^    at Object\.eval \(eval at <anonymous> \(.*\/line1\.js:1001:101\)/,
+    /^    at (?:Object\.)?eval \(sourceURL\.js:1:7\)$/,
+    /^    at (?:Object\.)?eval \(eval at <anonymous> \(.*\/line1\.js:1001:101\)/,
     /^    at Object\.exports\.test \(.*\/line1\.js:1001:101\)$/
   ]);
 });
@@ -300,7 +309,11 @@ it('handleUncaughtExceptions is false', function(done) {
   ], [
     /\/.generated.js:2$/,
     'function foo() { throw new Error("this is the error"); }',
-    '                       ^',
+
+    // Before Node 4, the arrow points on the `new`, after on the
+    // `throw`.
+    /^                 (?:      )?\^$/,
+
     'Error: this is the error',
     /^    at foo \(.*\/.original\.js:1:1\)$/
   ]);
@@ -315,7 +328,7 @@ it('default options with empty source map', function(done) {
   ], [
     /\/.generated.js:2$/,
     'function foo() { throw new Error("this is the error"); }',
-    '                       ^',
+    /^                 (?:      )?\^$/,
     'Error: this is the error',
     /^    at foo \(.*\/.generated.js:2:24\)$/
   ]);
@@ -330,7 +343,7 @@ it('default options with source map with gap', function(done) {
   ], [
     /\/.generated.js:2$/,
     'function foo() { throw new Error("this is the error"); }',
-    '                       ^',
+    /^                 (?:      )?\^$/,
     'Error: this is the error',
     /^    at foo \(.*\/.generated.js:2:24\)$/
   ]);
