@@ -5,14 +5,16 @@
   "main": "./source-map-support.js",
   "scripts": {
     "build": "node build.js",
+    "serve-tests": "http-server -p 1336",
     "test": "mocha"
   },
   "dependencies": {
     "source-map": "0.1.32"
   },
   "devDependencies": {
-    "coffee-script": "1.7.1",
     "browserify": "3.44.2",
+    "coffee-script": "1.7.1",
+    "http-server": "^0.8.5",
     "mocha": "1.18.2"
   },
   "repository": {
