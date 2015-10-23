@@ -8,6 +8,9 @@ var alreadyInstalled = false;
 // If true, the caches are reset before a stack trace formatting operation
 var emptyCacheBetweenOperations = false;
 
+// Supports {browser, node, auto}
+var environment = "auto";
+
 // Maps a file path to a string containing the file contents
 var fileContentsCache = {};
 
@@ -18,6 +21,10 @@ var sourceMapCache = {};
 var reSourceMap = /^data:application\/json[^,]+base64,/;
 
 function isInBrowser() {
+  if (environment === "browser")
+    return true;
+  if (environment === "node")
+    return false;
   return ((typeof window !== 'undefined') && (typeof XMLHttpRequest === 'function'));
 }
 
@@ -403,9 +410,16 @@ exports.install = function(options) {
     options = options || {};
     var installHandler = 'handleUncaughtExceptions' in options ?
       options.handleUncaughtExceptions : true;
+      
     emptyCacheBetweenOperations = 'emptyCacheBetweenOperations' in options ?
       options.emptyCacheBetweenOperations : false;
 
+    if (options.environment) {
+        environment = options.environment;
+        if (["node", "browser", "auto"].indexOf(environment) === -1)
+            throw new Error("environment " + environment + " was unknown. Available options are {auto, browser, node}")
+    }
+        
     // Allow sources to be found by methods other than reading the files
     // directly from disk.
     if (options.retrieveFile)
