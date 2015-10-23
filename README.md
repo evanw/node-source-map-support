@@ -228,8 +228,10 @@ Error: this is a demo
 This repo contains both automated tests for node and manual tests for the browser. The automated tests can be run using mocha (type `mocha` in the root directory). To run the manual tests:
 
 * Build the tests using `build.js`
-* Visit `amd-test`, `browser-test`, and `browserify-test` using the HTTP protocol (`python -m SimpleHTTPServer` can be used on OS X)
-  * The test `browserify-test` currently isn't working due to a bug with browserify. See pull request #66 for details.
+* Launch the HTTP server (`npm run serve-tests`) and visit
+  * http://127.0.0.1:1336/amd-test
+  * http://127.0.0.1:1336/browser-test
+  * http://127.0.0.1:1336/browserify-test - **Currently not working** due to a bug with browserify (see [pull request #66](https://github.com/evanw/node-source-map-support/pull/66) for details).
 * For `header-test`, run `server.js` inside that directory and visit http://127.0.0.1:1337/
 
 ## License
