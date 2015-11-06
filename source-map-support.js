@@ -484,12 +484,21 @@ exports.install = function(options) {
   if (options.hookRequire && !isInBrowser()) {
     var Module = require('module');
     var $compile = Module.prototype._compile;
-
     if (!$compile.__sourceMapSupport) {
       Module.prototype._compile = function(content, filename) {
         fileContentsCache[filename] = content;
         sourceMapCache[filename] = undefined;
-        return $compile.call(this, content, filename);
+        try {
+          return $compile.call(this, content, filename);
+        } catch (err) {
+          var relativePath = path.relative(process.cwd(), filename);
+
+          if (err instanceof SyntaxError) {
+            throw new SyntaxError(relativePath + ': ' + err.message);
+          } else {
+            throw err;
+          }
+        }
       };
 
       Module.prototype._compile.__sourceMapSupport = true;
