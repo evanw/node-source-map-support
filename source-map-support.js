@@ -334,7 +334,17 @@ function wrapCallSite(frame) {
       column: column
     });
 
-    if (/source-map-support\/source-map-support\.js/.test(position.source)) {
+    var functionName = frame.getFunctionName(),
+        name = frame.getMethodName() || frame.getFunctionName();
+    if (/source-map-support\/source-map-support\.js/.test(position.source)
+        || /istanbul\/lib\/hook\.js/.test(position.source)
+        || /babel-register/.test(position.source)
+        || position.source === 'vm.js'
+        || (position.source === 'module.js'
+            && (/load$/.test(name)
+                || functionName === 'Module.require'
+                || /_compile/.test(name)
+                || /\.js$/.test(name)))) {
       return;
     }
 
