@@ -26,7 +26,7 @@ run(browserify + ' .temp.js', function(error, stdout) {
     ' */',
   ].join('\n');
   var code = [
-    '(this["define"] || function(name, callback) { this["sourceMapSupport"] = callback(); })("browser-source-map-support", function(sourceMapSupport) {',
+    '(this["define"] || function(name, callback) { this["sourceMapSupport"] = callback(); })("browser-source-map-support", [], function(sourceMapSupport) {',
     stdout.replace(/\bbyte\b/g, 'bite').replace(new RegExp(__dirname + '/', 'g'), '').replace(/@license/g, 'license'),
     'return sourceMapSupport});',
   ].join('\n');
