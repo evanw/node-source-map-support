@@ -346,17 +346,37 @@ function wrapCallSite(frame) {
   return frame;
 }
 
+function concatStackTrace(error, stack) {
+  return error + stack.map(function (frame) {
+      return '\n    at ' + frame;
+    }).join('');
+}
+
+var blockRecursiveCall = false;
+
 // This function is part of the V8 stack trace API, for more info see:
 // http://code.google.com/p/v8/wiki/JavaScriptStackTraceApi
 function prepareStackTrace(error, stack) {
+  if (blockRecursiveCall) {
+    return concatStackTrace(error, stack);
+  }
   if (emptyCacheBetweenOperations) {
     fileContentsCache = {};
     sourceMapCache = {};
   }
-
-  return error + stack.map(function(frame) {
-    return '\n    at ' + wrapCallSite(frame);
-  }).join('');
+  blockRecursiveCall = true;
+  try {
+    return concatStackTrace(error, stack.map(wrapCallSite));
+  } catch (e) {
+    return [
+      'Error: Unable to perform source-map transform.\n  Original Error-> ',
+      concatStackTrace(error, stack),
+      '\n  Transform Error->  ',
+      e.stack
+    ].join('');
+  } finally {
+    blockRecursiveCall = false;
+  }
 }
 
 // Generate position and snippet of original source with pointer
