@@ -137,7 +137,7 @@ retrieveMapHandlers.push(function(source) {
     // Support source map URL as a data url
     var rawData = sourceMappingURL.slice(sourceMappingURL.indexOf(',') + 1);
     sourceMapData = new Buffer(rawData, "base64").toString();
-    sourceMappingURL = null;
+    sourceMappingURL = source;
   } else {
     // Support source map URLs relative to the source URL
     sourceMappingURL = supportRelativeURL(source, sourceMappingURL);
