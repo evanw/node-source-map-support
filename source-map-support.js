@@ -185,7 +185,15 @@ function mapSourcePosition(position) {
 
   // Resolve the source URL relative to the URL of the source map
   if (sourceMap && sourceMap.map) {
-    var originalPosition = sourceMap.map.originalPositionFor(position);
+    var originalPosition;
+    // originalPositionFor also throws if position does not match
+    // We catch it and return original position.
+    try {
+      originalPosition = sourceMap.map.originalPositionFor(position);
+    } catch (ex) {
+      if (/No element indexed by/.test(ex.message)) return position;
+      else throw ex;
+    }
 
     // Only return the original position if a matching line was found. If no
     // matching line is found then we return position instead, which will cause
