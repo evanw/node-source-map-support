@@ -46,6 +46,16 @@ function createSingleLineSourceMap() {
   return sourceMap;
 }
 
+function createSecondLineSourceMap() {
+  var sourceMap = createEmptySourceMap();
+  sourceMap.addMapping({
+    generated: { line: 2, column: 0 },
+    original: { line: 1, column: 0 },
+    source: '.original.js'
+  });
+  return sourceMap;
+}
+
 function createMultiLineSourceMap() {
   var sourceMap = createEmptySourceMap();
   for (var i = 1; i <= 100; i++) {
@@ -270,7 +280,7 @@ it('finds the last sourceMappingURL', function() {
 });
 
 it('default options', function(done) {
-  compareStdout(done, createSingleLineSourceMap(), [
+  compareStdout(done, createSecondLineSourceMap(), [
     '',
     'function foo() { throw new Error("this is the error"); }',
     'require("./source-map-support").install();',
@@ -286,7 +296,7 @@ it('default options', function(done) {
 });
 
 it('handleUncaughtExceptions is true', function(done) {
-  compareStdout(done, createSingleLineSourceMap(), [
+  compareStdout(done, createSecondLineSourceMap(), [
     '',
     'function foo() { throw new Error("this is the error"); }',
     'require("./source-map-support").install({ handleUncaughtExceptions: true });',
@@ -301,7 +311,7 @@ it('handleUncaughtExceptions is true', function(done) {
 });
 
 it('handleUncaughtExceptions is false', function(done) {
-  compareStdout(done, createSingleLineSourceMap(), [
+  compareStdout(done, createSecondLineSourceMap(), [
     '',
     'function foo() { throw new Error("this is the error"); }',
     'require("./source-map-support").install({ handleUncaughtExceptions: false });',
@@ -350,7 +360,7 @@ it('default options with source map with gap', function(done) {
 });
 
 it('specifically requested error source', function(done) {
-  compareStdout(done, createSingleLineSourceMap(), [
+  compareStdout(done, createSecondLineSourceMap(), [
     '',
     'function foo() { throw new Error("this is the error"); }',
     'var sms = require("./source-map-support");',
