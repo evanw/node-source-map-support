@@ -1,6 +1,7 @@
 var SourceMapConsumer = require('source-map').SourceMapConsumer;
 var path = require('path');
 var fs = require('fs');
+var url = require('url');
 
 // Only install once if called multiple times
 var errorFormatterInstalled = false;
@@ -72,6 +73,9 @@ retrieveFileHandlers.push(function(path) {
 
     // Otherwise, use the filesystem
     else {
+      if (isAbsoluteURL(path)) {
+        path = localURLPath(path);
+      }
       var contents = fs.readFileSync(path, 'utf8');
     }
   } catch (e) {
@@ -81,14 +85,58 @@ retrieveFileHandlers.push(function(path) {
   return fileContentsCache[path] = contents;
 });
 
+function isAbsoluteURL(file) {
+    if (/^\w+:\/\//i.test(file)) {
+        if (!isInBrowser()) {
+            var dir = path.dirname(file);
+            if (fs.existsSync(dir)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    return false;
+}
+
+function localURLPath(file) {
+    var parsed = url.parse(file);
+    if (parsed.protocol === 'file:') {
+        var local = decodeURIComponent(parsed.path);
+        if (parsed.hostname) {
+            // SAMBA path
+            return '//' + parsed.hostname + local
+        }
+        else if (/^\/\w[:|]/.test(local)) {
+            // DOS path
+            return local.slice(1, 2) + ':' + local.slice(3).replace(/\//g, '\\');
+        }
+        else {
+            // POSIX path
+            return local;
+        }
+    }
+
+    // Unhandled URL protocol, return it.
+    return file;
+}
+
 // Support URLs relative to a directory, but be careful about a protocol prefix
 // in case we are in the browser (i.e. directories may start with "http://")
-function supportRelativeURL(file, url) {
-  if (!file) return url;
-  var dir = path.dirname(file);
-  var match = /^\w+:\/\/[^\/]*/.exec(dir);
-  var protocol = match ? match[0] : '';
-  return protocol + path.resolve(dir.slice(protocol.length), url);
+function supportRelativeURL(base, relative) {
+  if (!base) {
+    return relative;
+  }
+  if (isAbsoluteURL(base)) {
+    // base is a url, use url to combine.
+    return url.resolve(base, relative);
+  }
+  if (isAbsoluteURL(relative)) {
+    // absolute url or DOS path
+    return relative; 
+  }
+  
+  var dir = path.dirname(base);
+  return path.resolve(dir, relative);
 }
 
 function retrieveSourceMapURL(source) {

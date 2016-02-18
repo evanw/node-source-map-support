@@ -6,6 +6,7 @@ var SourceMapGenerator = require('source-map').SourceMapGenerator;
 var child_process = require('child_process');
 var assert = require('assert');
 var fs = require('fs');
+var path = require('path');
 
 function compareLines(actual, expected) {
   assert(actual.length >= expected.length, 'got ' + actual.length + ' lines but expected at least ' + expected.length + ' lines');
@@ -73,11 +74,47 @@ function createMultiLineSourceMapWithSourcesContent() {
   return sourceMap;
 }
 
-function compareStackTrace(sourceMap, source, expected) {
-  // Check once with a separate source map
+function createMultiLineSourceMapWithFileUrl() {
+  var sourceMap = new SourceMapGenerator({
+    file: '.generated.js',
+    sourceRoot: fileURL('.')
+  });
+  for (var i = 1; i <= 100; i++) {
+    sourceMap.addMapping({
+      generated: { line: i, column: 0 },
+      original: { line: 1000 + i, column: 99 + i },
+      source: 'line' + i + '.js'
+    });
+  }
+  return sourceMap;
+}
+
+
+function fileURL(file) {
+    file = path.resolve(file);
+    file = file.replace(/\\/g, '/');
+    file = file[0] !== '/' ? '/' + file : file;
+    return encodeURI('file://' + file);
+}
+
+function compareStackTrace(sourceMap, source, expected, useFileUrl) {
+  // Check once with a separate source map using a relative url
   fs.writeFileSync('.generated.js.map', sourceMap);
   fs.writeFileSync('.generated.js', 'exports.test = function() {' +
     source.join('\n') + '};//@ sourceMappingURL=.generated.js.map');
+  try {
+    delete require.cache[require.resolve('./.generated')];
+    require('./.generated').test();
+  } catch (e) {
+    compareLines(e.stack.split('\n'), expected);
+  }
+  fs.unlinkSync('.generated.js');
+  fs.unlinkSync('.generated.js.map');
+  
+  // Check again with a source map using a relative url
+  fs.writeFileSync('.generated.js.map', sourceMap);
+  fs.writeFileSync('.generated.js', 'exports.test = function() {' +
+    source.join('\n') + '};//@ sourceMappingURL=' + fileURL('.generated.js.map'));
   try {
     delete require.cache[require.resolve('./.generated')];
     require('./.generated').test();
@@ -256,6 +293,15 @@ it('sourcesContent with data URL', function() {
   ], [
     'Error: test',
     /^    at Object\.exports\.test \(.*[\\/]original.js:1001:5\)$/
+  ]);
+});
+
+it('support file urls', function () {
+  compareStackTrace(createMultiLineSourceMapWithFileUrl(), [
+    'throw new Error("test");'
+  ], [
+    'Error: test',
+    /^    at Object\.exports\.test \(.*[\\/]line1\.js:1001:101\)$/
   ]);
 });
 
@@ -472,7 +518,7 @@ it('allows code/comments after sourceMappingURL', function() {
   var source = [ 'throw new Error("test");' ];
   var expected = [
     'Error: test',
-    /^    at Object\.exports\.test \(.*\/line1\.js:1001:101\)$/
+    /^    at Object\.exports\.test \(.*[\\/]line1\.js:1001:101\)$/
   ];
 
   fs.writeFileSync('.generated.js', 'exports.test = function() {' +
