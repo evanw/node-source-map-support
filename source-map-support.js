@@ -89,10 +89,10 @@ retrieveFileHandlers.push(function(path) {
 // - A path is a URI if it starts with an alpha character followed by 
 //   one or more of either an alpha character, digit, '+', '-', or '-', 
 //   followed by a colon. For example:
-//      http://tempuri.org/path - Web URI
-//      file://host/path        - File URI for UNC path
-//      file:///c:/path         - File URI for DOS path
-//      urn:custom              - Other URI
+//      http://tempuri.org/path     - Web URI
+//      file://server/share         - File URI for UNC path
+//      file:///c:/path             - File URI for DOS path
+//      urn:custom                  - Other URI
 //
 //   NOTE: A path is NOT a URI if it starts with a single alpha character 
 //   and a colon is, instead it is treated as a DOS path. For example:
@@ -109,9 +109,7 @@ function isURI(file) {
 // that NodeJS understands using the following rules:
 // - A file URI with a host name is treated as a UNC path/NTFS
 //   long path:
-//      file://server/share         -> //host/path
-//      file://?/UNC/server/share   -> //?/UNC/server/share
-//      file://?/C:/long/path       -> //?/C:/server/share
+//      file://server/share         -> \\host\path
 //
 // - A file URI without a host name, whose first path segment is
 //   a single alpha character followed by either a colon (':') or
@@ -132,16 +130,7 @@ function toPath(uri) {
             return '\\\\' + parsed.hostname + decodeURIComponent(parsed.path).replace(/\//g, '\\');
         }
         
-        if (!parsed.pathname && parsed.search) {
-            // A file URI without a pathname, but with a querystring are
-            // NTFS long path names.        
-            var path = decodeURIComponent(parsed.search);
-            var match = /^(\\?[\\/][^?]*)/.exec(path);
-            if (match) {
-                return '\\\\' + match[1].replace(/\//g, '\\');
-            }
-        }
-        else if (parsed.pathname) {
+        if (parsed.pathname) {
             var path = decodeURIComponent(parsed.pathname);
             if (/^[\\/]\w[:|]/.test(path)) {
                 // DOS path
