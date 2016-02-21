@@ -132,7 +132,7 @@ function toPath(uri) {
         
         if (parsed.pathname) {
             var path = decodeURIComponent(parsed.pathname);
-            if (/^[\\/]\w[:|]/.test(path)) {
+            if (/^[\\/][a-z][:|]/.test(path)) {
                 // DOS path
                 return path.slice(1, 2) + ':' + path.slice(3).replace(/\//g, '\\');
             }
