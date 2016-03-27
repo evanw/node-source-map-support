@@ -222,6 +222,16 @@ it('eval with sourceURL inside eval', function() {
   ]);
 });
 
+it('native function', function() {
+  compareStackTrace(createSingleLineSourceMap(), [
+    '[1].map(function(x) { throw new Error(x); });'
+  ], [
+    'Error: 1',
+    /\/.original\.js/,
+    /at Array\.map \(native\)/
+  ]);
+});
+
 it('function constructor', function() {
   compareStackTrace(createMultiLineSourceMap(), [
     'throw new Function(")");'
