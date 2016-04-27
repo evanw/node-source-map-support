@@ -21,6 +21,9 @@ var sourceMapCache = {};
 // Regex for detecting source maps
 var reSourceMap = /^data:application\/json[^,]+base64,/;
 
+// Regex for detecting absolute file:// protocol source maps.
+var reFileSourceMap = /^file:\/\//;
+
 // Priority list of retrieve handlers
 var retrieveFileHandlers = [];
 var retrieveMapHandlers = [];
@@ -137,6 +140,10 @@ retrieveMapHandlers.push(function(source) {
     var rawData = sourceMappingURL.slice(sourceMappingURL.indexOf(',') + 1);
     sourceMapData = new Buffer(rawData, "base64").toString();
     sourceMappingURL = null;
+  } else if (!isInBrowser() && reFileSourceMap.test(sourceMappingURL)) {
+    // Support source map URL as an absolute or relative file:// URL.
+    sourceMappingURL = sourceMappingURL.slice(sourceMappingURL.indexOf('file://') + 'file://'.length);
+    sourceMapData = retrieveFile(sourceMappingURL);
   } else {
     // Support source map URLs relative to the source URL
     sourceMappingURL = supportRelativeURL(source, sourceMappingURL);

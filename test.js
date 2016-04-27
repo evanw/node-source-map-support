@@ -6,6 +6,7 @@ var SourceMapGenerator = require('source-map').SourceMapGenerator;
 var child_process = require('child_process');
 var assert = require('assert');
 var fs = require('fs');
+var path = require('path');
 
 function compareLines(actual, expected) {
   assert(actual.length >= expected.length, 'got ' + actual.length + ' lines but expected at least ' + expected.length + ' lines');
@@ -486,6 +487,56 @@ it('allows code/comments after sourceMappingURL', function() {
     compareLines(e.stack.split('\n'), expected);
   }
   fs.unlinkSync('.generated.js');
+});
+
+/* The following test duplicates some of the code in
+ * `compareStackTrace` but uses an absolute file:// sourceMappingURL.
+ */
+it('finds a sourceMappingURL given an absolute file://', function() {
+  var sourceMap = createMultiLineSourceMap();
+  var source = [ 'throw new Error("test");' ];
+  var expected = [
+    'Error: test',
+    /^    at Object\.exports\.test \(.*\/line1\.js:1001:101\)$/
+  ];
+
+  fs.writeFileSync('.generated.js', 'exports.test = function() {' +
+    source.join('\n') + '};//# sourceMappingURL=file://' + path.resolve('.generated.js.map') +
+    '\n');
+  fs.writeFileSync('.generated.js.map', sourceMap);
+  try {
+    delete require.cache[require.resolve('./.generated')];
+    require('./.generated').test();
+  } catch (e) {
+    compareLines(e.stack.split('\n'), expected);
+  }
+  fs.unlinkSync('.generated.js');
+  fs.unlinkSync('.generated.js.map');
+});
+
+/* The following test duplicates some of the code in
+ * `compareStackTrace` but uses a relative file:// sourceMappingURL.
+ */
+it('finds a sourceMappingURL given a relative file://', function() {
+  var sourceMap = createMultiLineSourceMap();
+  var source = [ 'throw new Error("test");' ];
+  var expected = [
+    'Error: test',
+    /^    at Object\.exports\.test \(.*\/line1\.js:1001:101\)$/
+  ];
+
+  fs.writeFileSync('.generated.js', 'exports.test = function() {' +
+    source.join('\n') + '};//# sourceMappingURL=file://.generated.js.map' +
+    '\n');
+  fs.writeFileSync('.generated.js.map', sourceMap);
+  try {
+    delete require.cache[require.resolve('./.generated')];
+    require('./.generated').test();
+  } catch (e) {
+    compareLines(e.stack.split('\n'), expected);
+  }
+  fs.unlinkSync('.generated.js');
+  fs.unlinkSync('.generated.js.map');
 });
 
 it('handleUncaughtExceptions is true with existing listener', function(done) {
