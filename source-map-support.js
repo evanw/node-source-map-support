@@ -86,15 +86,15 @@ retrieveFileHandlers.push(function(path) {
 });
 
 // Determines whether a file path is a URI using the following rules:
-// - A path is a URI if it starts with an alpha character followed by 
-//   one or more of either an alpha character, digit, '+', '-', or '-', 
+// - A path is a URI if it starts with an alpha character followed by
+//   one or more of either an alpha character, digit, '+', '-', or '-',
 //   followed by a colon. For example:
 //      http://tempuri.org/path     - Web URI
 //      file://server/share         - File URI for UNC path
 //      file:///c:/path             - File URI for DOS path
 //      urn:custom                  - Other URI
 //
-//   NOTE: A path is NOT a URI if it starts with a single alpha character 
+//   NOTE: A path is NOT a URI if it starts with a single alpha character
 //   and a colon is, instead it is treated as a DOS path. For example:
 //      c:/path                 - DOS path
 //      c:\path                 - DOS path
@@ -104,7 +104,7 @@ function isURI(file) {
     return /^[a-z][a-z0-9+.\-]+:/i.test(file);
 }
 
-// Tries to convert a URI to a local path. If the URI is a 
+// Tries to convert a URI to a local path. If the URI is a
 // file URI (file://), it is converted into a local path format
 // that NodeJS understands using the following rules:
 // - A file URI with a host name is treated as a UNC path/NTFS
@@ -129,10 +129,10 @@ function toPath(uri) {
             // A file URI with a hostname is a UNC path.
             return '\\\\' + parsed.hostname + decodeURIComponent(parsed.path).replace(/\//g, '\\');
         }
-        
+
         if (parsed.pathname) {
             var path = decodeURIComponent(parsed.pathname);
-            if (/^[\\/][a-z][:|]/.test(path)) {
+            if (/^[\\/][a-z][:|]/i.test(path)) {
                 // DOS path
                 return path.slice(1, 2) + ':' + path.slice(3).replace(/\//g, '\\');
             }
