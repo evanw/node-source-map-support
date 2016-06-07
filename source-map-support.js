@@ -73,10 +73,7 @@ retrieveFileHandlers.push(function(path) {
 
     // Otherwise, use the filesystem
     else {
-      if (isURI(path)) {
-        path = toPath(path);
-      }
-      var contents = fs.readFileSync(path, 'utf8');
+      var contents = fs.readFileSync(toLocalPath(path), 'utf8');
     }
   } catch (e) {
     var contents = null;
@@ -122,23 +119,25 @@ function isURI(file) {
 //      file:///etc/path        -> /etc/path
 //
 // - Querystring (?) and fragments (#) are removed.
-function toPath(uri) {
-    var parsed = url.parse(uri);
-    if (parsed.protocol === 'file:') {
-        if (parsed.hostname) {
-            // A file URI with a hostname is a UNC path.
-            return '\\\\' + parsed.hostname + decodeURIComponent(parsed.path).replace(/\//g, '\\');
-        }
-
-        if (parsed.pathname) {
-            var path = decodeURIComponent(parsed.pathname);
-            if (/^[\\/][a-z][:|]/i.test(path)) {
-                // DOS path
-                return path.slice(1, 2) + ':' + path.slice(3).replace(/\//g, '\\');
+function toLocalPath(uri) {
+    if (isURI(uri)) {
+        var parsed = url.parse(uri);
+        if (parsed.protocol === 'file:') {
+            if (parsed.hostname) {
+                // A file URI with a hostname is a UNC path.
+                return '\\\\' + parsed.hostname + decodeURIComponent(parsed.path).replace(/\//g, '\\');
             }
-            else {
-                // POSIX path
-                return path.replace(/\\/g, '/');
+
+            if (parsed.pathname) {
+                var path = decodeURIComponent(parsed.pathname);
+                if (/^[\\/][a-z][:|]/i.test(path)) {
+                    // DOS path
+                    return path.slice(1, 2) + ':' + path.slice(3).replace(/\//g, '\\');
+                }
+                else {
+                    // POSIX path
+                    return path.replace(/\\/g, '/');
+                }
             }
         }
     }
@@ -493,6 +492,7 @@ exports.wrapCallSite = wrapCallSite;
 exports.getErrorSource = getErrorSource;
 exports.mapSourcePosition = mapSourcePosition;
 exports.retrieveSourceMap = retrieveSourceMap;
+exports.toLocalPath = toLocalPath;
 
 exports.install = function(options) {
   options = options || {};
