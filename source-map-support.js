@@ -310,7 +310,7 @@ function wrapCallSite(frame) {
   // passed to eval() ending in "//# sourceURL=..." will return the source file
   // from getScriptNameOrSourceURL() instead
   var source = frame.getFileName() || frame.getScriptNameOrSourceURL();
-  if (source) {
+  if (source && !frame.isNative()) {
     var line = frame.getLineNumber();
     var column = frame.getColumnNumber() - 1;
 
