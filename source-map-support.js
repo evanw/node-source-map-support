@@ -306,6 +306,10 @@ function cloneCallSite(frame) {
 }
 
 function wrapCallSite(frame) {
+  if(frame.isNative()) {
+    return frame;
+  }
+
   // Most call sites will return the source file from getFileName(), but code
   // passed to eval() ending in "//# sourceURL=..." will return the source file
   // from getScriptNameOrSourceURL() instead
