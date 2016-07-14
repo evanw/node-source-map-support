@@ -30,7 +30,7 @@ function isInBrowser() {
     return true;
   if (environment === "node")
     return false;
-  return ((typeof window !== 'undefined') && (typeof XMLHttpRequest === 'function'));
+  return ((typeof window !== 'undefined') && (typeof XMLHttpRequest === 'function') && !(window.require && window.module && window.process && window.process.type === "renderer"));
 }
 
 function hasGlobalProcessEventEmitter() {
