@@ -37,6 +37,7 @@ import 'source-map-support/register'
 import sourceMapSupport from 'source-map-support'
 sourceMapSupport.install()
 ```
+Note: if you're using babel-register, it includes source-map-support already.
 
 It is also very useful with Mocha:
 
