@@ -6,6 +6,7 @@ var SourceMapGenerator = require('source-map').SourceMapGenerator;
 var child_process = require('child_process');
 var assert = require('assert');
 var fs = require('fs');
+var path = require('path');
 
 function compareLines(actual, expected) {
   assert(actual.length >= expected.length, 'got ' + actual.length + ' lines but expected at least ' + expected.length + ' lines');
@@ -73,11 +74,47 @@ function createMultiLineSourceMapWithSourcesContent() {
   return sourceMap;
 }
 
-function compareStackTrace(sourceMap, source, expected) {
-  // Check once with a separate source map
+function createMultiLineSourceMapWithFileUrl() {
+  var sourceMap = new SourceMapGenerator({
+    file: '.generated.js',
+    sourceRoot: fileURL('.')
+  });
+  for (var i = 1; i <= 100; i++) {
+    sourceMap.addMapping({
+      generated: { line: i, column: 0 },
+      original: { line: 1000 + i, column: 99 + i },
+      source: 'line' + i + '.js'
+    });
+  }
+  return sourceMap;
+}
+
+
+function fileURL(file) {
+    file = path.resolve(file);
+    file = file.replace(/\\/g, '/');
+    file = file[0] !== '/' ? '/' + file : file;
+    return encodeURI('file://' + file);
+}
+
+function compareStackTrace(sourceMap, source, expected, useFileUrl) {
+  // Check once with a separate source map using a relative url
   fs.writeFileSync('.generated.js.map', sourceMap);
   fs.writeFileSync('.generated.js', 'exports.test = function() {' +
     source.join('\n') + '};//@ sourceMappingURL=.generated.js.map');
+  try {
+    delete require.cache[require.resolve('./.generated')];
+    require('./.generated').test();
+  } catch (e) {
+    compareLines(e.stack.split('\n'), expected);
+  }
+  fs.unlinkSync('.generated.js');
+  fs.unlinkSync('.generated.js.map');
+  
+  // Check again with a source map using a relative url
+  fs.writeFileSync('.generated.js.map', sourceMap);
+  fs.writeFileSync('.generated.js', 'exports.test = function() {' +
+    source.join('\n') + '};//@ sourceMappingURL=' + fileURL('.generated.js.map'));
   try {
     delete require.cache[require.resolve('./.generated')];
     require('./.generated').test();
@@ -110,7 +147,7 @@ function compareStdout(done, sourceMap, source, expected) {
       compareLines(
         (stdout + stderr)
           .trim()
-          .split('\n')
+          .split(/\r\n|\r|\n/g)
           .filter(function (line) { return line !== '' }), // Empty lines are not relevant.
         expected
       );
@@ -129,7 +166,7 @@ it('normal throw', function() {
     'throw new Error("test");'
   ], [
     'Error: test',
-    /^    at Object\.exports\.test \(.*\/line1\.js:1001:101\)$/
+    /^    at Object\.exports\.test \(.*[\\/]line1\.js:1001:101\)$/
   ]);
 });
 
@@ -141,8 +178,8 @@ it('throw inside function', function() {
     'foo();'
   ], [
     'Error: test',
-    /^    at foo \(.*\/line2\.js:1002:102\)$/,
-    /^    at Object\.exports\.test \(.*\/line4\.js:1004:104\)$/
+    /^    at foo \(.*[\\/]line2\.js:1002:102\)$/,
+    /^    at Object\.exports\.test \(.*[\\/]line4\.js:1004:104\)$/
   ]);
 });
 
@@ -157,9 +194,9 @@ it('throw inside function inside function', function() {
     'foo();'
   ], [
     'Error: test',
-    /^    at bar \(.*\/line3\.js:1003:103\)$/,
-    /^    at foo \(.*\/line5\.js:1005:105\)$/,
-    /^    at Object\.exports\.test \(.*\/line7\.js:1007:107\)$/
+    /^    at bar \(.*[\\/]line3\.js:1003:103\)$/,
+    /^    at foo \(.*[\\/]line5\.js:1005:105\)$/,
+    /^    at Object\.exports\.test \(.*[\\/]line7\.js:1007:107\)$/
   ]);
 });
 
@@ -170,9 +207,9 @@ it('eval', function() {
     'Error: test',
 
     // Before Node 4, `Object.eval`, after just `eval`.
-    /^    at (?:Object\.)?eval \(eval at <anonymous> \(.*\/line1\.js:1001:101\)/,
+    /^    at (?:Object\.)?eval \(eval at <anonymous> \(.*[\\/]line1\.js:1001:101\)/,
 
-    /^    at Object\.exports\.test \(.*\/line1\.js:1001:101\)$/
+    /^    at Object\.exports\.test \(.*[\\/]line1\.js:1001:101\)$/
   ]);
 });
 
@@ -181,9 +218,9 @@ it('eval inside eval', function() {
     'eval("eval(\'throw new Error(\\"test\\")\')");'
   ], [
     'Error: test',
-    /^    at (?:Object\.)?eval \(eval at <anonymous> \(eval at <anonymous> \(.*\/line1\.js:1001:101\)/,
-    /^    at (?:Object\.)?eval \(eval at <anonymous> \(.*\/line1\.js:1001:101\)/,
-    /^    at Object\.exports\.test \(.*\/line1\.js:1001:101\)$/
+    /^    at (?:Object\.)?eval \(eval at <anonymous> \(eval at <anonymous> \(.*[\\/]line1\.js:1001:101\)/,
+    /^    at (?:Object\.)?eval \(eval at <anonymous> \(.*[\\/]line1\.js:1001:101\)/,
+    /^    at Object\.exports\.test \(.*[\\/]line1\.js:1001:101\)$/
   ]);
 });
 
@@ -195,9 +232,9 @@ it('eval inside function', function() {
     'foo();'
   ], [
     'Error: test',
-    /^    at eval \(eval at foo \(.*\/line2\.js:1002:102\)/,
-    /^    at foo \(.*\/line2\.js:1002:102\)/,
-    /^    at Object\.exports\.test \(.*\/line4\.js:1004:104\)$/
+    /^    at eval \(eval at foo \(.*[\\/]line2\.js:1002:102\)/,
+    /^    at foo \(.*[\\/]line2\.js:1002:102\)/,
+    /^    at Object\.exports\.test \(.*[\\/]line4\.js:1004:104\)$/
   ]);
 });
 
@@ -207,7 +244,7 @@ it('eval with sourceURL', function() {
   ], [
     'Error: test',
     /^    at (?:Object\.)?eval \(sourceURL\.js:1:7\)$/,
-    /^    at Object\.exports\.test \(.*\/line1\.js:1001:101\)$/
+    /^    at Object\.exports\.test \(.*[\\/]line1\.js:1001:101\)$/
   ]);
 });
 
@@ -217,8 +254,8 @@ it('eval with sourceURL inside eval', function() {
   ], [
     'Error: test',
     /^    at (?:Object\.)?eval \(sourceURL\.js:1:7\)$/,
-    /^    at (?:Object\.)?eval \(eval at <anonymous> \(.*\/line1\.js:1001:101\)/,
-    /^    at Object\.exports\.test \(.*\/line1\.js:1001:101\)$/
+    /^    at (?:Object\.)?eval \(eval at <anonymous> \(.*[\\/]line1\.js:1001:101\)/,
+    /^    at Object\.exports\.test \(.*[\\/]line1\.js:1001:101\)$/
   ]);
 });
 
@@ -238,7 +275,7 @@ it('function constructor', function() {
   ], [
     'SyntaxError: Unexpected token )',
     /^    at (?:Object\.)?Function \((?:unknown source|<anonymous>|native)\)$/,
-    /^    at Object\.exports\.test \(.*\/line1\.js:1001:101\)$/,
+    /^    at Object\.exports\.test \(.*[\\/]line1\.js:1001:101\)$/,
   ]);
 });
 
@@ -247,7 +284,7 @@ it('throw with empty source map', function() {
     'throw new Error("test");'
   ], [
     'Error: test',
-    /^    at Object\.exports\.test \(.*\/.generated.js:1:34\)$/
+    /^    at Object\.exports\.test \(.*[\\/].generated.js:1:34\)$/
   ]);
 });
 
@@ -256,7 +293,7 @@ it('throw with source map with gap', function() {
     'throw new Error("test");'
   ], [
     'Error: test',
-    /^    at Object\.exports\.test \(.*\/.generated.js:1:34\)$/
+    /^    at Object\.exports\.test \(.*[\\/].generated.js:1:34\)$/
   ]);
 });
 
@@ -265,7 +302,16 @@ it('sourcesContent with data URL', function() {
     'throw new Error("test");'
   ], [
     'Error: test',
-    /^    at Object\.exports\.test \(.*\/original.js:1001:5\)$/
+    /^    at Object\.exports\.test \(.*[\\/]original.js:1001:5\)$/
+  ]);
+});
+
+it('support file urls', function () {
+  compareStackTrace(createMultiLineSourceMapWithFileUrl(), [
+    'throw new Error("test");'
+  ], [
+    'Error: test',
+    /^    at Object\.exports\.test \(.*[\\/]line1\.js:1001:101\)$/
   ]);
 });
 
@@ -275,7 +321,7 @@ it('finds the last sourceMappingURL', function() {
     'throw new Error("test");'
   ], [
     'Error: test',
-    /^    at Object\.exports\.test \(.*\/original.js:1002:5\)$/
+    /^    at Object\.exports\.test \(.*[\\/]original.js:1002:5\)$/
   ]);
 });
 
@@ -287,11 +333,11 @@ it('default options', function(done) {
     'process.nextTick(foo);',
     'process.nextTick(function() { process.exit(1); });'
   ], [
-    /\/.original\.js:1$/,
+    /[\\/].original\.js:1$/,
     'this is the original code',
     '^',
     'Error: this is the error',
-    /^    at foo \(.*\/.original\.js:1:1\)$/
+    /^    at foo \(.*[\\/].original\.js:1:1\)$/
   ]);
 });
 
@@ -302,11 +348,11 @@ it('handleUncaughtExceptions is true', function(done) {
     'require("./source-map-support").install({ handleUncaughtExceptions: true });',
     'process.nextTick(foo);'
   ], [
-    /\/.original\.js:1$/,
+    /[\\/].original\.js:1$/,
     'this is the original code',
     '^',
     'Error: this is the error',
-    /^    at foo \(.*\/.original\.js:1:1\)$/
+    /^    at foo \(.*[\\/].original\.js:1:1\)$/
   ]);
 });
 
@@ -317,7 +363,7 @@ it('handleUncaughtExceptions is false', function(done) {
     'require("./source-map-support").install({ handleUncaughtExceptions: false });',
     'process.nextTick(foo);'
   ], [
-    /\/.generated.js:2$/,
+    /[\\/].generated.js:2$/,
     'function foo() { throw new Error("this is the error"); }',
 
     // Before Node 4, the arrow points on the `new`, after on the
@@ -325,7 +371,7 @@ it('handleUncaughtExceptions is false', function(done) {
     /^                 (?:      )?\^$/,
 
     'Error: this is the error',
-    /^    at foo \(.*\/.original\.js:1:1\)$/
+    /^    at foo \(.*[\\/].original\.js:1:1\)$/
   ]);
 });
 
@@ -336,11 +382,11 @@ it('default options with empty source map', function(done) {
     'require("./source-map-support").install();',
     'process.nextTick(foo);'
   ], [
-    /\/.generated.js:2$/,
+    /[\\/].generated.js:2$/,
     'function foo() { throw new Error("this is the error"); }',
     /^                 (?:      )?\^$/,
     'Error: this is the error',
-    /^    at foo \(.*\/.generated.js:2:24\)$/
+    /^    at foo \(.*[\\/].generated.js:2:24\)$/
   ]);
 });
 
@@ -351,11 +397,11 @@ it('default options with source map with gap', function(done) {
     'require("./source-map-support").install();',
     'process.nextTick(foo);'
   ], [
-    /\/.generated.js:2$/,
+    /[\\/].generated.js:2$/,
     'function foo() { throw new Error("this is the error"); }',
     /^                 (?:      )?\^$/,
     'Error: this is the error',
-    /^    at foo \(.*\/.generated.js:2:24\)$/
+    /^    at foo \(.*[\\/].generated.js:2:24\)$/
   ]);
 });
 
@@ -368,7 +414,7 @@ it('specifically requested error source', function(done) {
     'process.on("uncaughtException", function (e) { console.log("SRC:" + sms.getErrorSource(e)); });',
     'process.nextTick(foo);'
   ], [
-    /^SRC:.*\/.original.js:1$/,
+    /^SRC:.*[\\/].original.js:1$/,
     'this is the original code',
     '^'
   ]);
@@ -382,11 +428,11 @@ it('sourcesContent', function(done) {
     'process.nextTick(foo);',
     'process.nextTick(function() { process.exit(1); });'
   ], [
-    /\/original\.js:1002$/,
+    /[\\/]original\.js:1002$/,
     '    line 2',
     '    ^',
     'Error: this is the error',
-    /^    at foo \(.*\/original\.js:1002:5\)$/
+    /^    at foo \(.*[\\/]original\.js:1002:5\)$/
   ]);
 });
 
@@ -409,9 +455,9 @@ it('missing source maps should also be cached', function(done) {
     'process.nextTick(function() { console.log(count); });',
   ], [
     'Error: this is the error',
-    /^    at foo \(.*\/.generated.js:4:15\)$/,
+    /^    at foo \(.*[\\/].generated.js:4:15\)$/,
     'Error: this is the error',
-    /^    at foo \(.*\/.generated.js:4:15\)$/,
+    /^    at foo \(.*[\\/].generated.js:4:15\)$/,
     '1', // The retrieval should only be attempted once
   ]);
 });
@@ -442,9 +488,9 @@ it('should consult all retrieve source map providers', function(done) {
     'process.nextTick(function() { console.log(count); });',
   ], [
     'Error: this is the error',
-    /^    at foo \(.*\/original.js:1004:5\)$/,
+    /^    at foo \(.*[\\/]original.js:1004:5\)$/,
     'Error: this is the error',
-    /^    at foo \(.*\/original.js:1004:5\)$/,
+    /^    at foo \(.*[\\/]original.js:1004:5\)$/,
     '1', // The retrieval should only be attempted once
   ]);
 });
@@ -482,7 +528,7 @@ it('allows code/comments after sourceMappingURL', function() {
   var source = [ 'throw new Error("test");' ];
   var expected = [
     'Error: test',
-    /^    at Object\.exports\.test \(.*\/line1\.js:1001:101\)$/
+    /^    at Object\.exports\.test \(.*[\\/]line1\.js:1001:101\)$/
   ];
 
   fs.writeFileSync('.generated.js', 'exports.test = function() {' +

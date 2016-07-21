@@ -1,6 +1,7 @@
 var SourceMapConsumer = require('source-map').SourceMapConsumer;
 var path = require('path');
 var fs = require('fs');
+var url = require('url');
 
 // Only install once if called multiple times
 var errorFormatterInstalled = false;
@@ -72,7 +73,7 @@ retrieveFileHandlers.push(function(path) {
 
     // Otherwise, use the filesystem
     else {
-      var contents = fs.readFileSync(path, 'utf8');
+      var contents = fs.readFileSync(toLocalPath(path), 'utf8');
     }
   } catch (e) {
     var contents = null;
@@ -81,14 +82,85 @@ retrieveFileHandlers.push(function(path) {
   return fileContentsCache[path] = contents;
 });
 
+// Determines whether a file path is a URI using the following rules:
+// - A path is a URI if it starts with an alpha character followed by
+//   one or more of either an alpha character, digit, '+', '-', or '-',
+//   followed by a colon. For example:
+//      http://tempuri.org/path     - Web URI
+//      file://server/share         - File URI for UNC path
+//      file:///c:/path             - File URI for DOS path
+//      urn:custom                  - Other URI
+//
+//   NOTE: A path is NOT a URI if it starts with a single alpha character
+//   and a colon is, instead it is treated as a DOS path. For example:
+//      c:/path                 - DOS path
+//      c:\path                 - DOS path
+//
+// - Any other sequence of characters is not considered a URI.
+function isURI(file) {
+    return /^[a-z][a-z0-9+.\-]+:/i.test(file);
+}
+
+// Tries to convert a URI to a local path. If the URI is a
+// file URI (file://), it is converted into a local path format
+// that NodeJS understands using the following rules:
+// - A file URI with a host name is treated as a UNC path/NTFS
+//   long path:
+//      file://server/share         -> \\host\path
+//
+// - A file URI without a host name, whose first path segment is
+//   a single alpha character followed by either a colon (':') or
+//   pipe ('|') is treated as a rooted DOS path:
+//      file:///c:/path         -> c:\path
+//      file:///c|/path         -> c:\path
+//
+// - A file URI without a hostname that is not treated as a DOS
+//   path is treated as a rooted POSIX path:
+//      file:///etc/path        -> /etc/path
+//
+// - Querystring (?) and fragments (#) are removed.
+function toLocalPath(uri) {
+    if (isURI(uri)) {
+        var parsed = url.parse(uri);
+        if (parsed.protocol === 'file:') {
+            if (parsed.hostname) {
+                // A file URI with a hostname is a UNC path.
+                return '\\\\' + parsed.hostname + decodeURIComponent(parsed.path).replace(/\//g, '\\');
+            }
+
+            if (parsed.pathname) {
+                var path = decodeURIComponent(parsed.pathname);
+                if (/^[\\/][a-z][:|]/i.test(path)) {
+                    // DOS path
+                    return path.slice(1, 2) + ':' + path.slice(3).replace(/\//g, '\\');
+                }
+                else {
+                    // POSIX path
+                    return path.replace(/\\/g, '/');
+                }
+            }
+        }
+    }
+
+    // Unhandled URI format.
+    return uri;
+}
+
 // Support URLs relative to a directory, but be careful about a protocol prefix
 // in case we are in the browser (i.e. directories may start with "http://")
-function supportRelativeURL(file, url) {
-  if (!file) return url;
-  var dir = path.dirname(file);
-  var match = /^\w+:\/\/[^\/]*/.exec(dir);
-  var protocol = match ? match[0] : '';
-  return protocol + path.resolve(dir.slice(protocol.length), url);
+function supportRelativeURL(base, relative) {
+  if (!base || isURI(relative)) {
+    // no base or relative is absolute URI
+    return relative;
+  }
+  else if (isURI(base)) {
+    // base is a url, use url to combine.
+    return url.resolve(base, relative);
+  }
+  else {
+    var dir = path.dirname(base);
+    return path.resolve(dir, relative);
+  }
 }
 
 function retrieveSourceMapURL(source) {
@@ -424,6 +496,7 @@ exports.wrapCallSite = wrapCallSite;
 exports.getErrorSource = getErrorSource;
 exports.mapSourcePosition = mapSourcePosition;
 exports.retrieveSourceMap = retrieveSourceMap;
+exports.toLocalPath = toLocalPath;
 
 exports.install = function(options) {
   options = options || {};

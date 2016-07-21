@@ -7,3 +7,5 @@ browserify-test/script.js
 browserify-test/script.map
 header-test/script.js
 header-test/script.map
+browser-test/script.js
+browser-test/script.map
