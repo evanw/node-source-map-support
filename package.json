@@ -9,7 +9,7 @@
     "test": "mocha"
   },
   "dependencies": {
-    "source-map": "0.1.32"
+    "source-map": "^0.5.3"
   },
   "devDependencies": {
     "browserify": "3.44.2",

@@ -210,7 +210,7 @@ function mapEvalOrigin(origin) {
   if (match) {
     var position = mapSourcePosition({
       source: match[2],
-      line: match[3],
+      line: +match[3],
       column: match[4] - 1
     });
     return 'eval at ' + match[1] + ' (' + position.source + ':' +
