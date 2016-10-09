@@ -101,6 +101,17 @@ require('source-map-support').install({
 });
 ```
 
+To support files with inline source maps, the `hookRequire` options can be specified, which will monitor all source files for inline source maps.
+
+
+```js
+require('source-map-support').install({
+  hookRequire: true
+});
+```
+
+This monkey patches the `require` module loading chain, so is not enabled by default and is not recommended for any sort of production usage.
+
 ## Demos
 
 #### Basic Demo
