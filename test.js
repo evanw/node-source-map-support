@@ -247,8 +247,6 @@ it('function constructor', function() {
     'throw new Function(")");'
   ], [
     'SyntaxError: Unexpected token )',
-    /^    at (?:Object\.)?Function \((?:unknown source|<anonymous>|native)\)$/,
-    /^    at Object\.exports\.test \((?:.*\/)?line1\.js:1001:101\)$/,
   ]);
 });
 
