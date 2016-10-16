@@ -136,7 +136,7 @@ retrieveMapHandlers.push(function(source) {
     // Support source map URL as a data url
     var rawData = sourceMappingURL.slice(sourceMappingURL.indexOf(',') + 1);
     sourceMapData = new Buffer(rawData, "base64").toString();
-    sourceMappingURL = null;
+    sourceMappingURL = source;
   } else {
     // Support source map URLs relative to the source URL
     sourceMappingURL = supportRelativeURL(source, sourceMappingURL);
@@ -453,6 +453,22 @@ exports.install = function(options) {
     }
 
     retrieveMapHandlers.unshift(options.retrieveSourceMap);
+  }
+
+  // Support runtime transpilers that include inline source maps
+  if (options.hookRequire && !isInBrowser()) {
+    var Module = require('module');
+    var $compile = Module.prototype._compile;
+
+    if (!$compile.__sourceMapSupport) {
+      Module.prototype._compile = function(content, filename) {
+        fileContentsCache[filename] = content;
+        sourceMapCache[filename] = undefined;
+        return $compile.call(this, content, filename);
+      };
+
+      Module.prototype._compile.__sourceMapSupport = true;
+    }
   }
 
   // Configure options
