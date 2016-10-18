@@ -270,6 +270,10 @@ function CallSiteToString() {
   var isMethodCall = !(this.isToplevel() || isConstructor);
   if (isMethodCall) {
     var typeName = this.getTypeName();
+    // Fixes shim to be backward compatable with Node v0 to v4
+    if (typeName === "[object Object]") {
+      typeName = "null";
+    }
     var methodName = this.getMethodName();
     if (functionName) {
       if (typeName && functionName.indexOf(typeName) != 0) {
