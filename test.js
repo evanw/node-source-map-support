@@ -259,6 +259,21 @@ it('throw with empty source map', function() {
   ]);
 });
 
+it('throw in Timeout with empty source map', function(done) {
+  compareStdout(done, createEmptySourceMap(), [
+    'require("./source-map-support").install();',
+    'setTimeout(function () {',
+    '    throw new Error("this is the error")',
+    '})'
+  ], [
+    /\/.generated.js:3$/,
+    '    throw new Error("this is the error")',
+    /^          \^$/,
+    'Error: this is the error',
+    /^    at ((null)|(Timeout))\._onTimeout \((?:.*\/)?.generated.js:3:11\)$/
+  ]);
+});
+
 it('throw with source map with gap', function() {
   compareStackTrace(createSourceMapWithGap(), [
     'throw new Error("test");'
