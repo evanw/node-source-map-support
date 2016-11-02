@@ -428,6 +428,17 @@ exports.wrapCallSite = wrapCallSite;
 exports.getErrorSource = getErrorSource;
 exports.mapSourcePosition = mapSourcePosition;
 exports.retrieveSourceMap = retrieveSourceMap;
+exports.fileContentsCache = function(path, contents) {
+  if((typeof path !== 'undefined' && typeof contents !== 'undefined')) {
+    return fileContentsCache[path] = contents;
+  } else if(typeof path !== 'undefined'){
+      return fileContentsCache[path];
+  } else {
+    return fileContentsCache;
+  }
+};
+exports.isInBrowser = isInBrowser;
+exports.printErrorAndExit = printErrorAndExit;
 
 exports.install = function(options) {
   options = options || {};
