@@ -110,8 +110,8 @@ function retrieveSourceMapURL(source) {
 
   // Get the URL of the source map
   fileData = retrieveFile(source);
-  //        //# sourceMappingURL=foo.js.map                       /*# sourceMappingURL=foo.js.map */
-  var re = /(?:\/\/[@#][ \t]+sourceMappingURL=([^\s'"]+?)[ \t]*$)|(?:\/\*[@#][ \t]+sourceMappingURL=([^\*]+?)[ \t]*(?:\*\/)[ \t]*$)/mg;
+  //        //# sourceMappingURL=foo.js.map                       /*# sourceMappingURL=foo.js.map *
+  var re = /\/\/[#@]\s*sourceMappingURL=([^'"]+)\s*$/mg;
   // Keep executing the search to find the *last* sourceMappingURL to avoid
   // picking up sourceMappingURLs from comments, strings, etc.
   var lastMatch, match;
@@ -135,7 +135,11 @@ retrieveMapHandlers.push(function(source) {
   if (reSourceMap.test(sourceMappingURL)) {
     // Support source map URL as a data url
     var rawData = sourceMappingURL.slice(sourceMappingURL.indexOf(',') + 1);
-    sourceMapData = new Buffer(rawData, "base64").toString();
+    if (isInBrowser()) {
+        sourceMapData = atob(rawData);
+    } else {
+        sourceMapData = new Buffer(rawData, "base64").toString();
+    }
     sourceMappingURL = source;
   } else {
     // Support source map URLs relative to the source URL
