@@ -1,6 +1,5 @@
 var SourceMapConsumer = require('source-map').SourceMapConsumer;
 var path = require('path');
-var fs = require('fs');
 
 // Only install once if called multiple times
 var errorFormatterInstalled = false;
@@ -72,7 +71,7 @@ retrieveFileHandlers.push(function(path) {
 
     // Otherwise, use the filesystem
     else {
-      var contents = fs.readFileSync(path, 'utf8');
+      var contents = require('fs').readFileSync(path, 'utf8');
     }
   } catch (e) {
     var contents = null;
@@ -460,7 +459,12 @@ exports.install = function(options) {
 
   // Support runtime transpilers that include inline source maps
   if (options.hookRequire && !isInBrowser()) {
-    var Module = require('module');
+    var Module;
+    try {
+      Module = require('module');
+    } catch (err) {
+      // NOP: Loading in catch block to convert webpack error to warning.
+    }
     var $compile = Module.prototype._compile;
 
     if (!$compile.__sourceMapSupport) {
