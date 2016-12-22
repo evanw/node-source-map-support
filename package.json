@@ -6,6 +6,7 @@
   "scripts": {
     "build": "node build.js",
     "serve-tests": "http-server -p 1336",
+    "prepublish": "npm run build",
     "test": "mocha"
   },
   "dependencies": {
