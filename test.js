@@ -180,7 +180,7 @@ it('eval', function() {
     'Error: test',
 
     // Before Node 4, `Object.eval`, after just `eval`.
-    /^    at (?:Object\.)?eval \(eval at <anonymous> \((?:.*\/)?line1\.js:1001:101\)/,
+    /^    at (?:Object\.)?eval \(eval at (<anonymous>|exports.test) \((?:.*\/)?line1\.js:1001:101\)/,
 
     /^    at Object\.exports\.test \((?:.*\/)?line1\.js:1001:101\)$/
   ]);
@@ -191,8 +191,8 @@ it('eval inside eval', function() {
     'eval("eval(\'throw new Error(\\"test\\")\')");'
   ], [
     'Error: test',
-    /^    at (?:Object\.)?eval \(eval at <anonymous> \(eval at <anonymous> \((?:.*\/)?line1\.js:1001:101\)/,
-    /^    at (?:Object\.)?eval \(eval at <anonymous> \((?:.*\/)?line1\.js:1001:101\)/,
+    /^    at (?:Object\.)?eval \(eval at (<anonymous>|exports.test) \(eval at (<anonymous>|exports.test) \((?:.*\/)?line1\.js:1001:101\)/,
+    /^    at (?:Object\.)?eval \(eval at (<anonymous>|exports.test) \((?:.*\/)?line1\.js:1001:101\)/,
     /^    at Object\.exports\.test \((?:.*\/)?line1\.js:1001:101\)$/
   ]);
 });
@@ -227,7 +227,7 @@ it('eval with sourceURL inside eval', function() {
   ], [
     'Error: test',
     /^    at (?:Object\.)?eval \(sourceURL\.js:1:7\)$/,
-    /^    at (?:Object\.)?eval \(eval at <anonymous> \((?:.*\/)?line1\.js:1001:101\)/,
+    /^    at (?:Object\.)?eval \(eval at (<anonymous>|exports.test) \((?:.*\/)?line1\.js:1001:101\)/,
     /^    at Object\.exports\.test \((?:.*\/)?line1\.js:1001:101\)$/
   ]);
 });
