@@ -377,8 +377,13 @@ function getErrorSource(error) {
     var contents = fileContentsCache[source];
 
     // Support files on disk
-    if (!contents && fs.existsSync(source)) {
-      contents = fs.readFileSync(source, 'utf8');
+    try {
+      const fs = require('fs');
+      if (!contents && fs.existsSync(source)) {
+        contents = fs.readFileSync(source, 'utf8');
+      }
+    } catch (err) {
+      /* NOP */
     }
 
     // Format the line from the original source code like node does
