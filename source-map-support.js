@@ -1,6 +1,13 @@
 var SourceMapConsumer = require('source-map').SourceMapConsumer;
 var path = require('path');
 
+var fs;
+try {
+  fs = require('fs');
+} catch (err) {
+  /* nop */
+}
+
 // Only install once if called multiple times
 var errorFormatterInstalled = false;
 var uncaughtShimInstalled = false;
@@ -57,24 +64,19 @@ retrieveFileHandlers.push(function(path) {
     return fileContentsCache[path];
   }
 
-  try {
+  var contents = null;
+  if (!fs) {
     // Use SJAX if we are in the browser
-    if (isInBrowser()) {
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', path, false);
-      xhr.send(null);
-      var contents = null
-      if (xhr.readyState === 4 && xhr.status === 200) {
-        contents = xhr.responseText
-      }
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', path, false);
+    xhr.send(null);
+    var contents = null
+    if (xhr.readyState === 4 && xhr.status === 200) {
+      contents = xhr.responseText
     }
-
+  } else if (fs.existsSync(path)) {
     // Otherwise, use the filesystem
-    else {
-      var contents = require('fs').readFileSync(path, 'utf8');
-    }
-  } catch (e) {
-    var contents = null;
+    contents = fs.readFileSync(path, 'utf8');
   }
 
   return fileContentsCache[path] = contents;
@@ -377,13 +379,8 @@ function getErrorSource(error) {
     var contents = fileContentsCache[source];
 
     // Support files on disk
-    try {
-      const fs = require('fs');
-      if (!contents && fs.existsSync(source)) {
-        contents = fs.readFileSync(source, 'utf8');
-      }
-    } catch (err) {
-      /* NOP */
+    if (!contents && fs && fs.existsSync(source)) {
+      contents = fs.readFileSync(source, 'utf8');
     }
 
     // Format the line from the original source code like node does
