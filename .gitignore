@@ -7,3 +7,4 @@ browserify-test/script.js
 browserify-test/script.map
 header-test/script.js
 header-test/script.map
+webpack-test/compiled.js

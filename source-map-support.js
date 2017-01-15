@@ -1,6 +1,12 @@
 var SourceMapConsumer = require('source-map').SourceMapConsumer;
 var path = require('path');
-var fs = require('fs');
+
+var fs;
+try {
+  fs = require('fs');
+} catch (err) {
+  /* nop */
+}
 
 // Only install once if called multiple times
 var errorFormatterInstalled = false;
@@ -58,24 +64,19 @@ retrieveFileHandlers.push(function(path) {
     return fileContentsCache[path];
   }
 
-  try {
+  var contents = null;
+  if (!fs) {
     // Use SJAX if we are in the browser
-    if (isInBrowser()) {
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', path, false);
-      xhr.send(null);
-      var contents = null
-      if (xhr.readyState === 4 && xhr.status === 200) {
-        contents = xhr.responseText
-      }
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', path, false);
+    xhr.send(null);
+    var contents = null
+    if (xhr.readyState === 4 && xhr.status === 200) {
+      contents = xhr.responseText
     }
-
+  } else if (fs.existsSync(path)) {
     // Otherwise, use the filesystem
-    else {
-      var contents = fs.readFileSync(path, 'utf8');
-    }
-  } catch (e) {
-    var contents = null;
+    contents = fs.readFileSync(path, 'utf8');
   }
 
   return fileContentsCache[path] = contents;
@@ -378,7 +379,7 @@ function getErrorSource(error) {
     var contents = fileContentsCache[source];
 
     // Support files on disk
-    if (!contents && fs.existsSync(source)) {
+    if (!contents && fs && fs.existsSync(source)) {
       contents = fs.readFileSync(source, 'utf8');
     }
 
@@ -460,7 +461,12 @@ exports.install = function(options) {
 
   // Support runtime transpilers that include inline source maps
   if (options.hookRequire && !isInBrowser()) {
-    var Module = require('module');
+    var Module;
+    try {
+      Module = require('module');
+    } catch (err) {
+      // NOP: Loading in catch block to convert webpack error to warning.
+    }
     var $compile = Module.prototype._compile;
 
     if (!$compile.__sourceMapSupport) {
