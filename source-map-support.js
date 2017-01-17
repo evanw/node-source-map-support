@@ -4,7 +4,7 @@ var path = require('path');
 var fs;
 try {
   fs = require('fs');
-  if (!fs.readFileSync || !fs.readFileSync) {
+  if (!fs.existsSync || !fs.readFileSync) {
     // fs doesn't have all methods we need
     fs = null;
   }
