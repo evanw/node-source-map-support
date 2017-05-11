@@ -139,9 +139,18 @@ function mapSourcePosition(position) {
     // Call the (overrideable) retrieveSourceMap function to get the source map.
     var urlAndMap = retrieveSourceMap(position.source);
     if (urlAndMap) {
+      var map
+      // Determine whether `map` is an instance of SourceMapConsumer (either
+      // BasicSourceMapConsumer or IndexedSourceMapConsumer) or the unparsed
+      // source map.
+      if (urlAndMap.map.originalPositionFor) {
+        map = urlAndMap.map
+      } else {
+        map = new SourceMapConsumer(urlAndMap.map)
+      }
       sourceMap = sourceMapCache[position.source] = {
         url: urlAndMap.url,
-        map: new SourceMapConsumer(urlAndMap.map)
+        map: map
       };
 
       // Load all sources stored inline with the source map into the file cache
@@ -410,7 +419,7 @@ exports.install = function(options) {
     options = options || {};
     var installHandler = 'handleUncaughtExceptions' in options ?
       options.handleUncaughtExceptions : true;
-      
+
     emptyCacheBetweenOperations = 'emptyCacheBetweenOperations' in options ?
       options.emptyCacheBetweenOperations : false;
 
@@ -419,7 +428,7 @@ exports.install = function(options) {
         if (["node", "browser", "auto"].indexOf(environment) === -1)
             throw new Error("environment " + environment + " was unknown. Available options are {auto, browser, node}")
     }
-        
+
     // Allow sources to be found by methods other than reading the files
     // directly from disk.
     if (options.retrieveFile)
