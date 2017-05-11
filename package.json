@@ -1,5 +1,5 @@
 {
-  "name": "source-map-support",
+  "name": "@atom/source-map-support",
   "description": "Fixes stack traces for files with source maps",
   "version": "0.3.3",
   "main": "./source-map-support.js",
