@@ -5,8 +5,9 @@ var path = require('path');
 var querystring = require('querystring');
 var child_process = require('child_process');
 
-var browserify = path.join('node_modules', '.bin', 'browserify');
-var coffee = path.join('node_modules', '.bin', 'coffee');
+var browserify = path.resolve(path.join('node_modules', '.bin', 'browserify'));
+var webpack = path.resolve(path.join('node_modules', '.bin', 'webpack'));
+var coffee = path.resolve(path.join('node_modules', '.bin', 'coffee'));
 
 function run(command, callback) {
   console.log(command);
@@ -70,4 +71,9 @@ run(coffee + ' --map --compile header-test/script.coffee', function(error) {
   if (error) throw error;
   var contents = fs.readFileSync('header-test/script.js', 'utf8');
   fs.writeFileSync('header-test/script.js', contents.replace(/\/\/# sourceMappingURL=.*/g, ''))
+});
+
+// Build the webpack test
+child_process.exec(webpack, {cwd: 'webpack-test'}, function(error) {
+  if (error) throw error;
 });
