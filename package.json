@@ -17,7 +17,7 @@
     "coffee-script": "1.12.6",
     "http-server": "^0.10.0",
     "mocha": "1.18.2",
-    "webpack": "^1.13.3"
+    "webpack": "^2.6.1"
   },
   "repository": {
     "type": "git",
