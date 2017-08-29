@@ -411,7 +411,9 @@ function printError (error) {
     console.error(source);
   }
 
-  console.error(error.stack);
+  if (process.traceProcessWarnings === true) {
+    console.error(error.stack);
+  }
 }
 
 function printErrorAndExit (error) {
@@ -421,6 +423,8 @@ function printErrorAndExit (error) {
 
 function shimEmitUncaughtException () {
   var origEmit = process.emit;
+  // Only print the deprecation warning on node 7.0.0+
+  var deprecationWarned = (parseInt(process.versions.node) < 7);
 
   process.emit = function (type) {
     if (type === 'uncaughtException' || type === 'unhandledRejection') {
@@ -432,7 +436,17 @@ function shimEmitUncaughtException () {
           return printErrorAndExit(arguments[1]);
         }
         else {
-          return printError(arguments[1]);
+          printError(arguments[1]);
+          if (!deprecationWarned) {
+            deprecationWarned = true;
+            process.emitWarning(
+              'Unhandled promise rejections are deprecated. In the future, ' +
+              'promise rejections that are not handled will terminate the ' +
+              'Node.js process with a non-zero exit code.',
+              'DeprecationWarning', 'DEP0018'
+            );
+          }
+          return true;
         }
       }
     }
