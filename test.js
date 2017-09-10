@@ -143,6 +143,28 @@ it('normal throw', function() {
   ]);
 });
 
+/* The following test duplicates some of the code in
+ * `normal throw` but triggers file read failure.
+ */
+it('fs.readFileSync failure', function() {
+  compareStackTrace(createMultiLineSourceMap(), [
+    'var fs = require("fs");',
+    'var rfs = fs.readFileSync;',
+    'fs.readFileSync = function() {',
+    '  throw new Error("no rfs for you");',
+    '};',
+    'try {',
+    '  throw new Error("test");',
+    '} finally {',
+    '  fs.readFileSync = rfs;',
+    '}'
+  ], [
+    'Error: test',
+    /^    at Object\.exports\.test \((?:.*[/\\])?line7\.js:1007:107\)$/
+  ]);
+});
+
+
 it('throw inside function', function() {
   compareStackTrace(createMultiLineSourceMap(), [
     'function foo() {',
