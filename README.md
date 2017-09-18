@@ -27,7 +27,7 @@ If multiple sourceMappingURL comments exist in one file, the last sourceMappingU
 respected (e.g. if a file mentions the comment in code, or went through multiple transpilers).
 The path should either be absolute or relative to the compiled file.
 
-It is also possible to to install the source map support directly by
+It is also possible to install the source map support directly by
 requiring the `register` module which can be handy with ES6:
 
 ```js
