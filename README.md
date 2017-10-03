@@ -23,15 +23,13 @@ The path should either be absolute or relative to the compiled file.
 
 From here you have two options.
 
-##### Node >= 2.2.0
-
-Node 2.2.0 added the `-r` command line argument, so if you're using 2.2.0 or greater, you can use the following to run your code.
+##### CLI Usage
 
 ```bash
 node -r source-map-support/register compiled.js
 ```
 
-##### Node < 2.2.0
+##### Programmatic Usage
 
 Put the following line at the top of the compiled file.
 
