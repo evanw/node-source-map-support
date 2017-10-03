@@ -11,13 +11,7 @@ This module provides source map support for stack traces in node via the [V8 sta
 $ npm install source-map-support
 ```
 
-Source maps can be generated using libraries such as [source-map-index-generator](https://github.com/twolfson/source-map-index-generator). Once you have a valid source map, insert the following line at the top of your compiled code:
-
-```js
-require('source-map-support').install();
-```
-
-And place a source mapping comment somewhere in the file (usually done automatically or with an option by your transpiler):
+Source maps can be generated using libraries such as [source-map-index-generator](https://github.com/twolfson/source-map-index-generator). Once you have a valid source map, place a source mapping comment somewhere in the file (usually done automatically or with an option by your transpiler):
 
 ```
 //# sourceMappingURL=path/to/source.map
@@ -26,6 +20,22 @@ And place a source mapping comment somewhere in the file (usually done automatic
 If multiple sourceMappingURL comments exist in one file, the last sourceMappingURL comment will be
 respected (e.g. if a file mentions the comment in code, or went through multiple transpilers).
 The path should either be absolute or relative to the compiled file.
+
+From here you have two options.
+
+##### CLI Usage
+
+```bash
+node -r source-map-support/register compiled.js
+```
+
+##### Programmatic Usage
+
+Put the following line at the top of the compiled file.
+
+```js
+require('source-map-support').install();
+```
 
 It is also possible to install the source map support directly by
 requiring the `register` module which can be handy with ES6:
