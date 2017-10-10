@@ -69,7 +69,7 @@ retrieveFileHandlers.push(function(path) {
   }
 
   var contents = null;
-  if (!fs) {
+  if (!fs && isInBrowser()) {
     // Use SJAX if we are in the browser
     var xhr = new XMLHttpRequest();
     xhr.open('GET', path, false);
@@ -78,7 +78,7 @@ retrieveFileHandlers.push(function(path) {
     if (xhr.readyState === 4 && xhr.status === 200) {
       contents = xhr.responseText
     }
-  } else if (fs.existsSync(path)) {
+  } else if (fs && fs.existsSync(path)) {
     // Otherwise, use the filesystem
     try {
       contents = fs.readFileSync(path, 'utf8');
