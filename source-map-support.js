@@ -64,7 +64,7 @@ var retrieveFile = handlerExec(retrieveFileHandlers);
 retrieveFileHandlers.push(function(path) {
   // Trim the path to make sure there is no extra whitespace.
   path = path.trim();
-  if (path.startsWith('file:')) {
+  if (/^file:/.test(path)) {
     // existsSync/readFileSync can't handle file protocol, but once stripped, it works
     path = path.replace(/file:\/\/(\w:\\|\/)/, '');
   }
