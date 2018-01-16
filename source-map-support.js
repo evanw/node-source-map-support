@@ -64,6 +64,10 @@ var retrieveFile = handlerExec(retrieveFileHandlers);
 retrieveFileHandlers.push(function(path) {
   // Trim the path to make sure there is no extra whitespace.
   path = path.trim();
+  if (/^file:/.test(path)) {
+    // existsSync/readFileSync can't handle file protocol, but once stripped, it works
+    path = path.replace(/file:\/\/(\w:\\|\/)/, '');
+  }
   if (path in fileContentsCache) {
     return fileContentsCache[path];
   }
@@ -91,12 +95,18 @@ retrieveFileHandlers.push(function(path) {
 });
 
 // Support URLs relative to a directory, but be careful about a protocol prefix
-// in case we are in the browser (i.e. directories may start with "http://")
+// in case we are in the browser (i.e. directories may start with "http://" or "file:///")
 function supportRelativeURL(file, url) {
   if (!file) return url;
   var dir = path.dirname(file);
   var match = /^\w+:\/\/[^\/]*/.exec(dir);
   var protocol = match ? match[0] : '';
+  var startPath = dir.slice(protocol.length);
+  if (protocol && /^\/\w\:/.test(startPath)) {
+    // handle file:///C:/ paths
+    protocol += '/';
+    return protocol + path.resolve(dir.slice(protocol.length), url).replace(/\\/g, '/');
+  }
   return protocol + path.resolve(dir.slice(protocol.length), url);
 }
 
