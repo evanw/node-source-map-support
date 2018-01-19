@@ -66,7 +66,11 @@ retrieveFileHandlers.push(function(path) {
   path = path.trim();
   if (/^file:/.test(path)) {
     // existsSync/readFileSync can't handle file protocol, but once stripped, it works
-    path = path.replace(/file:\/\/(\w:\\|\/)/, '');
+    path = path.replace(/file:\/\/\/(\w:)?/, function(protocol, drive) {
+      return drive ?
+        '' : // file:///C:/dir/file -> C:/dir/file
+        '/'; // file:///root-dir/file -> /root-dir/file
+    });
   }
   if (path in fileContentsCache) {
     return fileContentsCache[path];
