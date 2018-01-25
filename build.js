@@ -39,7 +39,7 @@ run(browserify + ' .temp.js', function(error, stdout) {
     output_format: 'text',
     js_code: code
   }));
-  run('curl -d @.temp.js "http://closure-compiler.appspot.com/compile"', function(error, stdout) {
+  run('curl -d @.temp.js "https://closure-compiler.appspot.com/compile"', function(error, stdout) {
     if (error) throw error;
     var code = header + '\n' + stdout;
     fs.unlinkSync('.temp.js');
