@@ -429,11 +429,10 @@ function printErrorAndExit (error) {
   var source = getErrorSource(error);
 
   if (source) {
-    console.error();
-    console.error(source);
+    fs.writeSync(2, "\n" + source + "\n");
   }
 
-  console.error(error.stack);
+  fs.writeSync(2, error.stack + "\n");
   process.exit(1);
 }
 
