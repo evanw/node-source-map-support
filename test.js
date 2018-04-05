@@ -601,3 +601,45 @@ it('handleUncaughtExceptions is true with existing listener', function(done) {
     done();
   });
 });
+
+it('supports multiple instances', function(done) {
+  function finish(err) {
+    fs.unlinkSync('.original2.js');
+    fs.unlinkSync('.generated2.js');
+    fs.unlinkSync('.generated2.js.map.extra')
+    done(err);
+  }
+  var sourceMap = createEmptySourceMap();
+  sourceMap.addMapping({
+    generated: { line: 1, column: 0 },
+    original: { line: 1, column: 0 },
+    source: '.original2.js'
+  });
+  fs.writeFileSync('.generated2.js.map.extra', sourceMap);
+  fs.writeFileSync('.generated2.js', [
+    'module.exports = function foo() { throw new Error("this is the error"); }',
+    '//@ sourceMappingURL=.generated2.js.map'
+  ].join('\n'));
+  fs.writeFileSync('.original2.js', 'this is some other original code');
+  compareStdout(finish, createEmptySourceMap(), [
+    'require("./source-map-support").install({',
+    '  retrieveFile: function(path) {',
+    '    var fs = require("fs");',
+    '    if (fs.existsSync(path + ".extra")) {',
+    '      return fs.readFileSync(path + ".extra", "utf8");',
+    '    }',
+    '  }',
+    '});',
+    'var foo = require("./.generated2.js");',
+    'delete require.cache[require.resolve("./source-map-support")];',
+    'require("./source-map-support").install();',
+    'process.nextTick(foo);',
+    'process.nextTick(function() { process.exit(1); });'
+  ], [
+    /[/\\].original2\.js:1$/,
+    'this is some other original code',
+    '^',
+    'Error: this is the error',
+    /^    at foo \((?:.*[/\\])?.original2\.js:1:1\)$/
+  ]);
+});

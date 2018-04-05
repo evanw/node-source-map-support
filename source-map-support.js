@@ -12,28 +12,69 @@ try {
   /* nop */
 }
 
-// Only install once if called multiple times
-var errorFormatterInstalled = false;
-var uncaughtShimInstalled = false;
+// Increment this if the format of sharedData changes in a breaking way.
+var sharedDataVersion = 1;
 
-// If true, the caches are reset before a stack trace formatting operation
-var emptyCacheBetweenOperations = false;
+function initializeSharedData(defaults) {
+  var sharedDataKey = 'source-map-support/sharedData';
+  if (typeof Symbol !== 'undefined') {
+    sharedDataKey = Symbol.for(sharedDataKey);
+  }
+  var sharedData = this[sharedDataKey];
+  if (!sharedData) {
+    sharedData = { version: sharedDataVersion };
+    if (Object.defineProperty) {
+      Object.defineProperty(this, sharedDataKey, { value: sharedData });
+    } else {
+      this[sharedDataKey] = sharedData;
+    }
+  }
+  if (sharedDataVersion !== sharedData.version) {
+    throw new Error("Multiple incompatible instances of source-map-support were loaded");
+  }
+  for (var key in defaults) {
+    if (!(key in sharedData)) {
+      sharedData[key] = defaults[key];
+    }
+  }
+  return sharedData;
+}
+
+// If multiple instances of source-map-support are loaded into the same
+// context, they shouldn't overwrite each other.  By storing handlers, caches,
+// and other state on a shared object, different instances of
+// source-map-support can work together in a limited way. This does require
+// that future versions of source-map-support continue to support the fields on
+// this object. If this internal contract ever needs to be broken, increment
+// sharedDataVersion. (This version number is not the same as any of the
+// package's version numbers, which should reflect the *external* API of
+// source-map-support.)
+var sharedData = initializeSharedData({
+
+  // Only install once if called multiple times
+  errorFormatterInstalled: false,
+  uncaughtShimInstalled: false,
+
+  // If true, the caches are reset before a stack trace formatting operation
+  emptyCacheBetweenOperations: false,
+
+  // Maps a file path to a string containing the file contents
+  fileContentsCache: {},
+
+  // Maps a file path to a source map for that file
+  sourceMapCache: {},
+
+  // Priority list of retrieve handlers
+  retrieveFileHandlers: [],
+  retrieveMapHandlers: [],
+
+});
 
 // Supports {browser, node, auto}
 var environment = "auto";
 
-// Maps a file path to a string containing the file contents
-var fileContentsCache = {};
-
-// Maps a file path to a source map for that file
-var sourceMapCache = {};
-
 // Regex for detecting source maps
 var reSourceMap = /^data:application\/json[^,]+base64,/;
-
-// Priority list of retrieve handlers
-var retrieveFileHandlers = [];
-var retrieveMapHandlers = [];
 
 function isInBrowser() {
   if (environment === "browser")
@@ -59,9 +100,9 @@ function handlerExec(list) {
   };
 }
 
-var retrieveFile = handlerExec(retrieveFileHandlers);
+var retrieveFile = handlerExec(sharedData.retrieveFileHandlers);
 
-retrieveFileHandlers.push(function(path) {
+sharedData.retrieveFileHandlers.push(function(path) {
   // Trim the path to make sure there is no extra whitespace.
   path = path.trim();
   if (/^file:/.test(path)) {
@@ -72,8 +113,8 @@ retrieveFileHandlers.push(function(path) {
         '/'; // file:///root-dir/file -> /root-dir/file
     });
   }
-  if (path in fileContentsCache) {
-    return fileContentsCache[path];
+  if (path in sharedData.fileContentsCache) {
+    return sharedData.fileContentsCache[path];
   }
 
   var contents = null;
@@ -95,7 +136,7 @@ retrieveFileHandlers.push(function(path) {
     }
   }
 
-  return fileContentsCache[path] = contents;
+  return sharedData.fileContentsCache[path] = contents;
 });
 
 // Support URLs relative to a directory, but be careful about a protocol prefix
@@ -150,8 +191,8 @@ function retrieveSourceMapURL(source) {
 // there is no source map.  The map field may be either a string or the parsed
 // JSON object (ie, it must be a valid argument to the SourceMapConsumer
 // constructor).
-var retrieveSourceMap = handlerExec(retrieveMapHandlers);
-retrieveMapHandlers.push(function(source) {
+var retrieveSourceMap = handlerExec(sharedData.retrieveMapHandlers);
+sharedData.retrieveMapHandlers.push(function(source) {
   var sourceMappingURL = retrieveSourceMapURL(source);
   if (!sourceMappingURL) return null;
 
@@ -179,12 +220,12 @@ retrieveMapHandlers.push(function(source) {
 });
 
 function mapSourcePosition(position) {
-  var sourceMap = sourceMapCache[position.source];
+  var sourceMap = sharedData.sourceMapCache[position.source];
   if (!sourceMap) {
     // Call the (overrideable) retrieveSourceMap function to get the source map.
     var urlAndMap = retrieveSourceMap(position.source);
     if (urlAndMap) {
-      sourceMap = sourceMapCache[position.source] = {
+      sourceMap = sharedData.sourceMapCache[position.source] = {
         url: urlAndMap.url,
         map: new SourceMapConsumer(urlAndMap.map)
       };
@@ -196,12 +237,12 @@ function mapSourcePosition(position) {
           var contents = sourceMap.map.sourcesContent[i];
           if (contents) {
             var url = supportRelativeURL(sourceMap.url, source);
-            fileContentsCache[url] = contents;
+            sharedData.fileContentsCache[url] = contents;
           }
         });
       }
     } else {
-      sourceMap = sourceMapCache[position.source] = {
+      sourceMap = sharedData.sourceMapCache[position.source] = {
         url: null,
         map: null
       };
@@ -383,9 +424,9 @@ function wrapCallSite(frame) {
 // This function is part of the V8 stack trace API, for more info see:
 // http://code.google.com/p/v8/wiki/JavaScriptStackTraceApi
 function prepareStackTrace(error, stack) {
-  if (emptyCacheBetweenOperations) {
-    fileContentsCache = {};
-    sourceMapCache = {};
+  if (sharedData.emptyCacheBetweenOperations) {
+    sharedData.fileContentsCache = {};
+    sharedData.sourceMapCache = {};
   }
 
   return error + stack.map(function(frame) {
@@ -402,7 +443,7 @@ function getErrorSource(error) {
     var column = +match[3];
 
     // Support the inline sourceContents inside the source map
-    var contents = fileContentsCache[source];
+    var contents = sharedData.fileContentsCache[source];
 
     // Support files on disk
     if (!contents && fs && fs.existsSync(source)) {
@@ -472,20 +513,20 @@ exports.install = function(options) {
   // directly from disk.
   if (options.retrieveFile) {
     if (options.overrideRetrieveFile) {
-      retrieveFileHandlers.length = 0;
+      sharedData.retrieveFileHandlers.length = 0;
     }
 
-    retrieveFileHandlers.unshift(options.retrieveFile);
+    sharedData.retrieveFileHandlers.unshift(options.retrieveFile);
   }
 
   // Allow source maps to be found by methods other than reading the files
   // directly from disk.
   if (options.retrieveSourceMap) {
     if (options.overrideRetrieveSourceMap) {
-      retrieveMapHandlers.length = 0;
+      sharedData.retrieveMapHandlers.length = 0;
     }
 
-    retrieveMapHandlers.unshift(options.retrieveSourceMap);
+    sharedData.retrieveMapHandlers.unshift(options.retrieveSourceMap);
   }
 
   // Support runtime transpilers that include inline source maps
@@ -500,8 +541,8 @@ exports.install = function(options) {
 
     if (!$compile.__sourceMapSupport) {
       Module.prototype._compile = function(content, filename) {
-        fileContentsCache[filename] = content;
-        sourceMapCache[filename] = undefined;
+        sharedData.fileContentsCache[filename] = content;
+        sharedData.sourceMapCache[filename] = undefined;
         return $compile.call(this, content, filename);
       };
 
@@ -510,18 +551,18 @@ exports.install = function(options) {
   }
 
   // Configure options
-  if (!emptyCacheBetweenOperations) {
-    emptyCacheBetweenOperations = 'emptyCacheBetweenOperations' in options ?
+  if (!sharedData.emptyCacheBetweenOperations) {
+    sharedData.emptyCacheBetweenOperations = 'emptyCacheBetweenOperations' in options ?
       options.emptyCacheBetweenOperations : false;
   }
 
   // Install the error reformatter
-  if (!errorFormatterInstalled) {
-    errorFormatterInstalled = true;
+  if (!sharedData.errorFormatterInstalled) {
+    sharedData.errorFormatterInstalled = true;
     Error.prepareStackTrace = prepareStackTrace;
   }
 
-  if (!uncaughtShimInstalled) {
+  if (!sharedData.uncaughtShimInstalled) {
     var installHandler = 'handleUncaughtExceptions' in options ?
       options.handleUncaughtExceptions : true;
 
@@ -533,7 +574,7 @@ exports.install = function(options) {
     // generated JavaScript code will be shown above the stack trace instead of
     // the original source code.
     if (installHandler && hasGlobalProcessEventEmitter()) {
-      uncaughtShimInstalled = true;
+      sharedData.uncaughtShimInstalled = true;
       shimEmitUncaughtException();
     }
   }
