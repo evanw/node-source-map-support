@@ -381,7 +381,7 @@ function wrapCallSite(frame) {
 }
 
 // This function is part of the V8 stack trace API, for more info see:
-// http://code.google.com/p/v8/wiki/JavaScriptStackTraceApi
+// https://github.com/v8/v8/wiki/Stack-Trace-API
 function prepareStackTrace(error, stack) {
   if (emptyCacheBetweenOperations) {
     fileContentsCache = {};
