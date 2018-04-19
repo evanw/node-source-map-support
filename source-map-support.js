@@ -388,7 +388,9 @@ function prepareStackTrace(error, stack) {
     sourceMapCache = {};
   }
 
-  return error + stack.map(function(frame) {
+  var message = (error instanceof Error) ? error : error.message;
+
+  return message + stack.map(function(frame) {
     return '\n    at ' + wrapCallSite(frame);
   }).join('');
 }
