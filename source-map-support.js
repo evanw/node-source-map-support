@@ -12,7 +12,7 @@ try {
   /* nop */
 }
 
-var newBuffer = require('./create-buffer');
+var newBuffer = require('buffer-from');
 
 // Only install once if called multiple times
 var errorFormatterInstalled = false;
