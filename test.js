@@ -6,6 +6,7 @@ var SourceMapGenerator = require('source-map').SourceMapGenerator;
 var child_process = require('child_process');
 var assert = require('assert');
 var fs = require('fs');
+var newBuffer = require('./create-buffer');
 
 function compareLines(actual, expected) {
   assert(actual.length >= expected.length, 'got ' + actual.length + ' lines but expected at least ' + expected.length + ' lines');
@@ -100,7 +101,7 @@ function compareStackTrace(sourceMap, source, expected) {
   // Check again with an inline source map (in a data URL)
   fs.writeFileSync('.generated.js', 'exports.test = function() {' +
     source.join('\n') + '};//@ sourceMappingURL=data:application/json;base64,' +
-    new Buffer(sourceMap.toString()).toString('base64'));
+    newBuffer(sourceMap.toString()).toString('base64'));
   try {
     delete require.cache[require.resolve('./.generated')];
     require('./.generated').test();
@@ -517,7 +518,7 @@ it('should allow for runtime inline source maps', function(done) {
           'process.nextTick(foo);',
           'process.nextTick(foo);',
           'process.nextTick(function() { console.log(count); });',
-          '//@ sourceMappingURL=data:application/json;charset=utf8;base64,' + new Buffer(sourceMap.toString()).toString('base64')
+          '//@ sourceMappingURL=data:application/json;charset=utf8;base64,' + newBuffer(sourceMap.toString()).toString('base64')
         ].join('\n')),
         ', filename);',
     '};',
@@ -545,7 +546,7 @@ it('finds source maps with charset specified', function() {
 
   fs.writeFileSync('.generated.js', 'exports.test = function() {' +
     source.join('\n') + '};//@ sourceMappingURL=data:application/json;charset=utf8;base64,' +
-    new Buffer(sourceMap.toString()).toString('base64'));
+    newBuffer(sourceMap.toString()).toString('base64'));
   try {
     delete require.cache[require.resolve('./.generated')];
     require('./.generated').test();
@@ -569,7 +570,7 @@ it('allows code/comments after sourceMappingURL', function() {
 
   fs.writeFileSync('.generated.js', 'exports.test = function() {' +
     source.join('\n') + '};//# sourceMappingURL=data:application/json;base64,' +
-    new Buffer(sourceMap.toString()).toString('base64') +
+    newBuffer(sourceMap.toString()).toString('base64') +
     '\n// Some comment below the sourceMappingURL\nvar foo = 0;');
   try {
     delete require.cache[require.resolve('./.generated')];

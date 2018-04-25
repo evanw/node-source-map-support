@@ -12,18 +12,7 @@ try {
   /* nop */
 }
 
-var newBuffer = (function(){
-  try {
-    // Use Buffer.from for newer Node versions
-    Buffer.from('', 'utf8');
-    return Buffer.from;
-  } catch(e) {
-    // Use new Buffer() for old Node versions
-    return function() {
-      return new (Buffer.bind.apply(Buffer, [].concat(arguments)))();
-    }
-  }
-})();
+var newBuffer = require('./create-buffer');
 
 // Only install once if called multiple times
 var errorFormatterInstalled = false;
