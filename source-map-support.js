@@ -12,6 +12,8 @@ try {
   /* nop */
 }
 
+var bufferFrom = require('buffer-from');
+
 // Only install once if called multiple times
 var errorFormatterInstalled = false;
 var uncaughtShimInstalled = false;
@@ -160,7 +162,7 @@ retrieveMapHandlers.push(function(source) {
   if (reSourceMap.test(sourceMappingURL)) {
     // Support source map URL as a data url
     var rawData = sourceMappingURL.slice(sourceMappingURL.indexOf(',') + 1);
-    sourceMapData = new Buffer(rawData, "base64").toString();
+    sourceMapData = bufferFrom(rawData, "base64").toString();
     sourceMappingURL = source;
   } else {
     // Support source map URLs relative to the source URL
