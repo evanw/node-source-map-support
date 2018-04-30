@@ -455,6 +455,9 @@ function shimEmitUncaughtException () {
   };
 }
 
+var originalRetrieveFileHandlers = retrieveFileHandlers.slice(0);
+var originalRetrieveMapHandlers = retrieveMapHandlers.slice(0);
+
 exports.wrapCallSite = wrapCallSite;
 exports.getErrorSource = getErrorSource;
 exports.mapSourcePosition = mapSourcePosition;
@@ -540,3 +543,11 @@ exports.install = function(options) {
     }
   }
 };
+
+exports.resetRetrieveHandlers = function() {
+  retrieveFileHandlers.length = 0;
+  retrieveMapHandlers.length = 0;
+
+  retrieveFileHandlers = originalRetrieveFileHandlers.slice(0);
+  retrieveMapHandlers = originalRetrieveMapHandlers.slice(0);
+}
