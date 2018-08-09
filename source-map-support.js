@@ -430,11 +430,17 @@ function getErrorSource(error) {
 function printErrorAndExit (error) {
   var source = getErrorSource(error);
 
-  if (source) {
-    fs.writeSync(2, "\n" + source + "\n");
+  // Ensure error is printed synchronously and not truncated
+  if (process.stderr._handle && process.stderr._handle.setBlocking) {
+    process.stderr._handle.setBlocking(true);
   }
 
-  fs.writeSync(2, error.stack + "\n");
+  if (source) {
+    console.error();
+    console.error(source);
+  }
+
+  console.error(error.stack);
   process.exit(1);
 }
 
