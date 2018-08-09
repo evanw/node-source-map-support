@@ -278,7 +278,7 @@ it('throw with empty source map', function() {
     'throw new Error("test");'
   ], [
     'Error: test',
-    /^    at Object\.exports\.test \((?:.*[/\\])?.generated.js:1:34\)$/
+    /^    at Object\.exports\.test \((?:.*[/\\])?\.generated.js:1:34\)$/
   ]);
 });
 
@@ -293,7 +293,7 @@ it('throw in Timeout with empty source map', function(done) {
     '    throw new Error("this is the error")',
     /^          \^$/,
     'Error: this is the error',
-    /^    at ((null)|(Timeout))\._onTimeout \((?:.*[/\\])?.generated.js:3:11\)$/
+    /^    at ((null)|(Timeout))\._onTimeout \((?:.*[/\\])?.generated\.js:3:11\)$/
   ]);
 });
 
@@ -302,7 +302,7 @@ it('throw with source map with gap', function() {
     'throw new Error("test");'
   ], [
     'Error: test',
-    /^    at Object\.exports\.test \((?:.*[/\\])?.generated.js:1:34\)$/
+    /^    at Object\.exports\.test \((?:.*[/\\])?\.generated\.js:1:34\)$/
   ]);
 });
 
@@ -311,7 +311,7 @@ it('sourcesContent with data URL', function() {
     'throw new Error("test");'
   ], [
     'Error: test',
-    /^    at Object\.exports\.test \((?:.*[/\\])?original.js:1001:5\)$/
+    /^    at Object\.exports\.test \((?:.*[/\\])?original\.js:1001:5\)$/
   ]);
 });
 
@@ -321,7 +321,27 @@ it('finds the last sourceMappingURL', function() {
     'throw new Error("test");'
   ], [
     'Error: test',
-    /^    at Object\.exports\.test \((?:.*[/\\])?original.js:1002:5\)$/
+    /^    at Object\.exports\.test \((?:.*[/\\])?original\.js:1002:5\)$/
+  ]);
+});
+
+it('maps original name from source', function() {
+  var sourceMap = createEmptySourceMap();
+  sourceMap.addMapping({
+    generated: { line: 2, column: 8 },
+    original: { line: 1000, column: 10 },
+    source: '.original.js',
+    name: 'myOriginalName'
+  });
+  compareStackTrace(sourceMap, [
+    'function foo() {',
+    '  throw new Error("test");',
+    '}',
+    'foo();'
+  ], [
+    'Error: test',
+    /^    at myOriginalName \((?:.*[/\\])?\.original.js:1000:11\)$/,
+    /^    at Object\.exports\.test \((?:.*[/\\])?\.generated.js:4:1\)$/
   ]);
 });
 
@@ -337,7 +357,7 @@ it('default options', function(done) {
     'this is the original code',
     '^',
     'Error: this is the error',
-    /^    at foo \((?:.*[/\\])?.original\.js:1:1\)$/
+    /^    at foo \((?:.*[/\\])?\.original\.js:1:1\)$/
   ]);
 });
 
@@ -352,7 +372,7 @@ it('handleUncaughtExceptions is true', function(done) {
     'this is the original code',
     '^',
     'Error: this is the error',
-    /^    at foo \((?:.*[/\\])?.original\.js:1:1\)$/
+    /^    at foo \((?:.*[/\\])?\.original\.js:1:1\)$/
   ]);
 });
 
@@ -414,7 +434,7 @@ it('specifically requested error source', function(done) {
     'process.on("uncaughtException", function (e) { console.log("SRC:" + sms.getErrorSource(e)); });',
     'process.nextTick(foo);'
   ], [
-    /^SRC:.*[/\\].original.js:1$/,
+    /^SRC:.*[/\\]\.original\.js:1$/,
     'this is the original code',
     '^'
   ]);
@@ -488,9 +508,9 @@ it('should consult all retrieve source map providers', function(done) {
     'process.nextTick(function() { console.log(count); });',
   ], [
     'Error: this is the error',
-    /^    at foo \((?:.*[/\\])?original.js:1004:5\)$/,
+    /^    at foo \((?:.*[/\\])?original\.js:1004:5\)$/,
     'Error: this is the error',
-    /^    at foo \((?:.*[/\\])?original.js:1004:5\)$/,
+    /^    at foo \((?:.*[/\\])?original\.js:1004:5\)$/,
     '1', // The retrieval should only be attempted once
   ]);
 });
@@ -525,9 +545,9 @@ it('should allow for runtime inline source maps', function(done) {
     'require("./.generated.jss");',
   ], [
     'Error: this is the error',
-    /^    at foo \(.*[/\\]original.js:1004:5\)$/,
+    /^    at foo \(.*[/\\]original\.js:1004:5\)$/,
     'Error: this is the error',
-    /^    at foo \(.*[/\\]original.js:1004:5\)$/,
+    /^    at foo \(.*[/\\]original\.js:1004:5\)$/,
     '0', // The retrieval should only be attempted once
   ]);
 });
