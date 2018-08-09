@@ -362,6 +362,8 @@ function wrapCallSite(frame) {
       column: column
     });
     frame = cloneCallSite(frame);
+    var originalFunctionName = frame.getFunctionName;
+    frame.getFunctionName = function() { return position.name || originalFunctionName(); };
     frame.getFileName = function() { return position.source; };
     frame.getLineNumber = function() { return position.line; };
     frame.getColumnNumber = function() { return position.column + 1; };
