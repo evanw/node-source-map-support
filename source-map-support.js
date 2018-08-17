@@ -80,13 +80,16 @@ retrieveFileHandlers.push(function(path) {
 
   var contents = null;
   if (!fs) {
-    // Use SJAX if we are in the browser
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', path, false);
-    xhr.send(null);
-    var contents = null
-    if (xhr.readyState === 4 && xhr.status === 200) {
-      contents = xhr.responseText
+    try {
+      // Use SJAX if we are in the browser
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', path, /** async */ false);
+      xhr.send(null);
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        contents = xhr.responseText;
+      }
+    } catch (er) {
+      contents = '';
     }
   } else if (fs.existsSync(path)) {
     // Otherwise, use the filesystem
