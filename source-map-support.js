@@ -78,9 +78,9 @@ retrieveFileHandlers.push(function(path) {
     return fileContentsCache[path];
   }
 
-  var contents = null;
-  if (!fs) {
-    try {
+  var contents = '';
+  try {
+    if (!fs) {
       // Use SJAX if we are in the browser
       var xhr = new XMLHttpRequest();
       xhr.open('GET', path, /** async */ false);
@@ -88,16 +88,12 @@ retrieveFileHandlers.push(function(path) {
       if (xhr.readyState === 4 && xhr.status === 200) {
         contents = xhr.responseText;
       }
-    } catch (er) {
-      contents = '';
-    }
-  } else if (fs.existsSync(path)) {
-    // Otherwise, use the filesystem
-    try {
+    } else if (fs.existsSync(path)) {
+      // Otherwise, use the filesystem
       contents = fs.readFileSync(path, 'utf8');
-    } catch (er) {
-      contents = '';
     }
+  } catch (er) {
+    /* ignore any errors */
   }
 
   return fileContentsCache[path] = contents;
