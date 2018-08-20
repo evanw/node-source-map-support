@@ -78,23 +78,22 @@ retrieveFileHandlers.push(function(path) {
     return fileContentsCache[path];
   }
 
-  var contents = null;
-  if (!fs) {
-    // Use SJAX if we are in the browser
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', path, false);
-    xhr.send(null);
-    var contents = null
-    if (xhr.readyState === 4 && xhr.status === 200) {
-      contents = xhr.responseText
-    }
-  } else if (fs.existsSync(path)) {
-    // Otherwise, use the filesystem
-    try {
+  var contents = '';
+  try {
+    if (!fs) {
+      // Use SJAX if we are in the browser
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', path, /** async */ false);
+      xhr.send(null);
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        contents = xhr.responseText;
+      }
+    } else if (fs.existsSync(path)) {
+      // Otherwise, use the filesystem
       contents = fs.readFileSync(path, 'utf8');
-    } catch (er) {
-      contents = '';
     }
+  } catch (er) {
+    /* ignore any errors */
   }
 
   return fileContentsCache[path] = contents;
