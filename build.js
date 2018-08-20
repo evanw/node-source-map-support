@@ -11,7 +11,7 @@ var coffee = path.resolve(path.join('node_modules', '.bin', 'coffee'));
 
 function run(command, callback) {
   console.log(command);
-  child_process.exec(command, callback);
+  child_process.exec(command, { maxBuffer: 25 * 1024 * 1024 }, callback);
 }
 
 // Use browserify to package up source-map-support.js
