@@ -209,7 +209,30 @@ Error: this is a demo
     at startup (node.js:119:16)
     at node.js:901:3
 ```
-    
+
+There is also the option to use `-r source-map-support/register` with typescript, without the need add the `require('source-map-support').install()` in the code base:
+
+```
+$ npm install source-map-support typescript
+$ node_modules/typescript/bin/tsc  -sourcemap demo.ts
+$ node -r source-map-support/register demo.js
+
+demo.ts:5
+  bar() { throw new Error('this is a demo'); }
+                ^
+Error: this is a demo
+    at Foo.bar (demo.ts:5:17)
+    at new Foo (demo.ts:4:24)
+    at Object.<anonymous> (demo.ts:7:1)
+    at Module._compile (module.js:456:26)
+    at Object.Module._extensions..js (module.js:474:10)
+    at Module.load (module.js:356:32)
+    at Function.Module._load (module.js:312:12)
+    at Function.Module.runMain (module.js:497:10)
+    at startup (node.js:119:16)
+    at node.js:901:3
+```
+
 #### CoffeeScript Demo
 
 demo.coffee:
