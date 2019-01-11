@@ -14,11 +14,11 @@
     "source-map": "^0.6.0"
   },
   "devDependencies": {
-    "browserify": "3.44.2",
-    "coffee-script": "1.7.1",
+    "browserify": "^3.46.1",
+    "coffeescript": "^1.12.7",
     "http-server": "^0.8.5",
-    "mocha": "1.18.2",
-    "webpack": "^1.13.3"
+    "mocha": "^1.21.5",
+    "webpack": "^1.15.0"
   },
   "repository": {
     "type": "git",
