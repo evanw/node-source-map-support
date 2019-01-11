@@ -210,7 +210,7 @@ function mapSourcePosition(position) {
   }
 
   // Resolve the source URL relative to the URL of the source map
-  if (sourceMap && sourceMap.map) {
+  if (sourceMap && sourceMap.map && typeof sourceMap.map.originalPositionFor === 'function') {
     var originalPosition = sourceMap.map.originalPositionFor(position);
 
     // Only return the original position if a matching line was found. If no
