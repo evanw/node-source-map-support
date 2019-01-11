@@ -1,10 +1,10 @@
 node_modules/
 amd-test/browser-source-map-support.js
 amd-test/script.js
-amd-test/script.map
+amd-test/script.js.map
 browserify-test/compiled.js
 browserify-test/script.js
-browserify-test/script.map
+browserify-test/script.js.map
 header-test/script.js
-header-test/script.map
+header-test/script.js.map
 webpack-test/compiled.js
