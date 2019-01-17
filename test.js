@@ -325,6 +325,27 @@ it('finds the last sourceMappingURL', function() {
   ]);
 });
 
+it('finds the sourceMappingURL in /**/', function() {
+  var sourceMap = createMultiLineSourceMap();
+  var source = [ 'throw new Error("test");' ];
+  var expected = [
+    'Error: test',
+    /^    at Object\.exports\.test \((?:.*[/\\])?line1\.js:1001:101\)$/
+  ];
+  
+  fs.writeFileSync('.generated.js', 'exports.test = function() {' +
+      source.join('\n') + '};/*# sourceMappingURL=data:application/json;charset=utf8;base64,' +
+      bufferFrom(sourceMap.toString()).toString('base64')) +
+      ' */';
+  try {
+    delete require.cache[require.resolve('./.generated')];
+    require('./.generated').test();
+  } catch (e) {
+    compareLines(e.stack.split(/\r\n|\n/), expected);
+  }
+  fs.unlinkSync('.generated.js');
+});
+
 it('maps original name from source', function() {
   var sourceMap = createEmptySourceMap();
   sourceMap.addMapping({

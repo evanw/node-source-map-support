@@ -143,7 +143,7 @@ function retrieveSourceMapURL(source) {
   var lastMatch, match;
   while (match = re.exec(fileData)) lastMatch = match;
   if (!lastMatch) return null;
-  return lastMatch[1];
+  return lastMatch[1] || lastMatch[2];
 };
 
 // Can be overridden by the retrieveSourceMap option to install. Takes a
