@@ -88,12 +88,14 @@ retrieveFileHandlers.push(function(path) {
       if (xhr.readyState === 4 && xhr.status === 200) {
         contents = xhr.responseText;
       }
-    } else if (fs.existsSync(path)) {
+    } else {
       // Otherwise, use the filesystem
       contents = fs.readFileSync(path, 'utf8');
     }
-  } catch (er) {
-    /* ignore any errors */
+  } catch (err) {
+    if (fs && err.code !== 'ENOENT') {
+      throw err;
+    }
   }
 
   return fileContentsCache[path] = contents;
@@ -408,10 +410,13 @@ function getErrorSource(error) {
     var contents = fileContentsCache[source];
 
     // Support files on disk
-    if (!contents && fs && fs.existsSync(source)) {
+    if (!contents && fs) {
       try {
         contents = fs.readFileSync(source, 'utf8');
-      } catch (er) {
+      } catch (err) {
+        if (err.code !== 'ENOENT') {
+          throw err;
+        }
         contents = '';
       }
     }
