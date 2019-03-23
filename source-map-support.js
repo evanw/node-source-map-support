@@ -384,14 +384,18 @@ function wrapCallSite(frame) {
 }
 
 // This function is part of the V8 stack trace API, for more info see:
-// http://code.google.com/p/v8/wiki/JavaScriptStackTraceApi
+// https://v8.dev/docs/stack-trace-api
 function prepareStackTrace(error, stack) {
   if (emptyCacheBetweenOperations) {
     fileContentsCache = {};
     sourceMapCache = {};
   }
 
-  return error + stack.map(function(frame) {
+  var name = error.name || 'Error';
+  var message = error.message || '';
+  var errorString = name + ": " + message;
+
+  return errorString + stack.map(function(frame) {
     return '\n    at ' + wrapCallSite(frame);
   }).join('');
 }
