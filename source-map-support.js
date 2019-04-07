@@ -360,6 +360,21 @@ function wrapCallSite(frame) {
       line: line,
       column: column
     });
+
+    var functionName = frame.getFunctionName(),
+        name = frame.getMethodName() || frame.getFunctionName();
+    if (/source-map-support\/source-map-support\.js/.test(position.source)
+        || /istanbul\/lib\/hook\.js/.test(position.source)
+        || /babel-register/.test(position.source)
+        || position.source === 'vm.js'
+        || (position.source === 'module.js'
+            && (/load$/.test(name)
+                || functionName === 'Module.require'
+                || /_compile/.test(name)
+                || /\.js$/.test(name)))) {
+      return;
+    }
+
     frame = cloneCallSite(frame);
     var originalFunctionName = frame.getFunctionName;
     frame.getFunctionName = function() { return position.name || originalFunctionName(); };
@@ -392,7 +407,13 @@ function prepareStackTrace(error, stack) {
   }
 
   return error + stack.map(function(frame) {
-    return '\n    at ' + wrapCallSite(frame);
+    frame = wrapCallSite(frame);
+
+    if (frame) {
+      return '\n    at ' + frame;
+    } else {
+      return '';
+    }
   }).join('');
 }
 
@@ -509,12 +530,21 @@ exports.install = function(options) {
       // NOP: Loading in catch block to convert webpack error to warning.
     }
     var $compile = Module.prototype._compile;
-
     if (!$compile.__sourceMapSupport) {
       Module.prototype._compile = function(content, filename) {
         fileContentsCache[filename] = content;
         sourceMapCache[filename] = undefined;
-        return $compile.call(this, content, filename);
+        try {
+          return $compile.call(this, content, filename);
+        } catch (err) {
+          var relativePath = path.relative(process.cwd(), filename);
+
+          if (err instanceof SyntaxError) {
+            throw new SyntaxError(relativePath + ': ' + err.message);
+          } else {
+            throw err;
+          }
+        }
       };
 
       Module.prototype._compile.__sourceMapSupport = true;
