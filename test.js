@@ -622,3 +622,13 @@ it('handleUncaughtExceptions is true with existing listener', function(done) {
     done();
   });
 });
+
+it('normal console.trace', function(done) {
+  compareStdout(done, createMultiLineSourceMap(), [
+    'require("./source-map-support").install();',
+    'console.trace("test");'
+  ], [
+    'Trace: test',
+    /^    at Object\.<anonymous> \((?:.*[/\\])?line2\.js:1002:102\)$/
+  ]);
+});
