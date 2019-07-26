@@ -445,9 +445,10 @@ function printError (error) {
     console.error(source);
   }
 
-  if (process.traceProcessWarnings === true) {
-    console.error(error.stack);
+  if (process.traceProcessWarnings !== true && error.code === 'unhandledRejection') {
+    return;
   }
+  console.error(error.stack);
 }
 
 function printErrorAndExit (error) {
@@ -468,8 +469,7 @@ function shimEmitUncaughtException () {
       if (hasStack && !hasListeners) {
         if (type === 'uncaughtException') {
           return printErrorAndExit(arguments[1]);
-        }
-        else {
+        } else {
           printError(arguments[1]);
           if (!deprecationWarned) {
             deprecationWarned = true;
