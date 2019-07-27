@@ -296,7 +296,7 @@ function CallSiteToString() {
   var isMethodCall = !(this.isToplevel() || isConstructor);
   if (isMethodCall) {
     var typeName = this.getTypeName();
-    // Fixes shim to be backward compatable with Node v0 to v4
+    // Fixes shim to be backward compatible with Node v0 to v4
     if (typeName === "[object Object]") {
       typeName = "null";
     }
@@ -445,9 +445,7 @@ function printError (error) {
     console.error(source);
   }
 
-  if (process.traceProcessWarnings !== true && error.code === 'unhandledRejection') {
-    return;
-  }
+  // FIXME: Only print the stack for unhandled rejection with trace warnings enabled
   console.error(error.stack);
 }
 
