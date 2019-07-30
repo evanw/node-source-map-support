@@ -137,7 +137,7 @@ function retrieveSourceMapURL(source) {
 
   // Get the URL of the source map
   fileData = retrieveFile(source);
-  var re = /(?:\/\/[@#][ \t]+sourceMappingURL=([^\s'"]+?)[ \t]*$)|(?:\/\*[@#][ \t]+sourceMappingURL=([^\*]+?)[ \t]*(?:\*\/)[ \t]*$)/mg;
+  var re = /(?:\/\/[@#][\s]*sourceMappingURL=([^\s'"]+)[\s]*$)|(?:\/\*[@#][\s]*sourceMappingURL=([^\s*'"]+)[\s]*(?:\*\/)[\s]*$)/mg;
   // Keep executing the search to find the *last* sourceMappingURL to avoid
   // picking up sourceMappingURLs from comments, strings, etc.
   var lastMatch, match;
