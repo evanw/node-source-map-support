@@ -350,7 +350,11 @@ function wrapCallSite(frame) {
 
     // Fix position in Node where some (internal) code is prepended.
     // See https://github.com/evanw/node-source-map-support/issues/36
-    var headerLength = 62;
+    // Header removed in node at ^10.16 || >=11.11.0
+    // v11 is not an LTS candidate, we can just test the one version with it.
+    // Test node versions for: 10.16-19, 10.20+, 12-19, 20-99, 100+, or 11.11
+    var noHeader = /^v(10\.1[6-9]|10\.[2-9][0-9]|10\.[0-9]{3,}|1[2-9]\d*|[2-9]\d|\d{3,}|11\.11)/;
+    var headerLength = noHeader.test(process.version) ? 0 : 62;
     if (line === 1 && column > headerLength && !isInBrowser() && !frame.isEval()) {
       column -= headerLength;
     }
