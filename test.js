@@ -331,7 +331,12 @@ it('maps original name from source', function() {
     generated: { line: 2, column: 8 },
     original: { line: 1000, column: 10 },
     source: '.original.js',
-    name: 'myOriginalName'
+  });
+  sourceMap.addMapping({
+    generated: { line: 4, column: 0 },
+    original: { line: 1002, column: 1 },
+    source: ".original.js",
+    name: "myOriginalName"
   });
   compareStackTrace(sourceMap, [
     'function foo() {',
@@ -341,7 +346,7 @@ it('maps original name from source', function() {
   ], [
     'Error: test',
     /^    at myOriginalName \((?:.*[/\\])?\.original.js:1000:11\)$/,
-    /^    at Object\.exports\.test \((?:.*[/\\])?\.generated.js:4:1\)$/
+    /^    at Object\.exports\.test \((?:.*[/\\])?\.original.js:1002:2\)$/
   ]);
 });
 
