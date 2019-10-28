@@ -269,7 +269,7 @@ it('function constructor', function() {
   compareStackTrace(createMultiLineSourceMap(), [
     'throw new Function(")");'
   ], [
-    'SyntaxError: Unexpected token )',
+    /SyntaxError: Unexpected token '?\)'?/,
   ]);
 });
 
