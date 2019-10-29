@@ -373,7 +373,7 @@ function wrapCallSite(frame, state) {
     frame = cloneCallSite(frame);
     var originalFunctionName = frame.getFunctionName;
     frame.getFunctionName = function() {
-      if (state.nextPosition === null || state.nextPosition === undefined) {
+      if (state.nextPosition == null) {
         return originalFunctionName();
       }
       return state.nextPosition.name || originalFunctionName();
