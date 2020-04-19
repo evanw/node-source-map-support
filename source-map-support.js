@@ -568,8 +568,9 @@ exports.install = function(options) {
       // Don't let browserify try to resolve this require(), it's pointless
       // and breaks the build process.
       var worker_threads = require('worker_' + 'threads');
-      if (worker_threads.isMainThread === false)
+      if (worker_threads.isMainThread === false) {
         installHandler = false;
+      }
     } catch(e) {}
 
     // Provide the option to not install the uncaught exception handler. This is
