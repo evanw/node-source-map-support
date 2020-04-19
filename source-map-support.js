@@ -561,6 +561,18 @@ exports.install = function(options) {
     var installHandler = 'handleUncaughtExceptions' in options ?
       options.handleUncaughtExceptions : true;
 
+    // Do not override 'uncaughtException' with our own handler in Node.js
+    // Worker threads. Workers pass the error to the main thread as an event,
+    // rather than printing something to stderr and exiting.
+    try {
+      // Don't let browserify try to resolve this require(), it's pointless
+      // and breaks the build process.
+      var worker_threads = require('worker_' + 'threads');
+      if (worker_threads.isMainThread === false) {
+        installHandler = false;
+      }
+    } catch(e) {}
+
     // Provide the option to not install the uncaught exception handler. This is
     // to support other uncaught exception handlers (in test frameworks, for
     // example). If this handler is not installed and there are no other uncaught
