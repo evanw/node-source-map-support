@@ -14,6 +14,16 @@ try {
 
 var bufferFrom = require('buffer-from');
 
+/**
+ * Requires a module which is protected against bundler minification.
+ *
+ * @param {NodeModule} mod
+ * @param {string} request
+ */
+function dynamicRequire(mod, request) {
+  return mod.require(request);
+}
+
 // Only install once if called multiple times
 var errorFormatterInstalled = false;
 var uncaughtShimInstalled = false;
@@ -565,9 +575,8 @@ exports.install = function(options) {
     // Worker threads. Workers pass the error to the main thread as an event,
     // rather than printing something to stderr and exiting.
     try {
-      // Don't let browserify try to resolve this require(), it's pointless
-      // and breaks the build process.
-      var worker_threads = require('worker_' + 'threads');
+      // We need to use `dynamicRequire` because `require` on it's own will be optimized by WebPack/Browserify.
+      var worker_threads = dynamicRequire(module, 'worker_threads');
       if (worker_threads.isMainThread === false) {
         installHandler = false;
       }
