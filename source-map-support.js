@@ -1,4 +1,4 @@
-var SourceMapConsumer = require('source-map').SourceMapConsumer;
+var SourceMapConsumer = require('source-map-js').SourceMapConsumer;
 var path = require('path');
 
 var fs;
