@@ -13,4 +13,4 @@ jobs:
         with:
           check_filenames: true
           check_hidden: true
-          skip: ./.git
+          skip: ./.git,./amd-test/require.js
