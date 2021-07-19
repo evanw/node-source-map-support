@@ -616,7 +616,7 @@ it('handleUncaughtExceptions is true with existing listener', function(done) {
   ];
 
   fs.writeFileSync('.original.js', 'this is the original code');
-  fs.writeFileSync('.generated.js.map', createSingleLineSourceMap());
+  fs.writeFileSync('.generated.js.map', `${ createSingleLineSourceMap() }`);
   fs.writeFileSync('.generated.js', source.join('\n'));
 
   child_process.exec('node ./.generated', function(error, stdout, stderr) {
