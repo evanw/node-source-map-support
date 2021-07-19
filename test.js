@@ -86,7 +86,7 @@ function createMultiLineSourceMapWithSourcesContent() {
 
 function compareStackTrace(sourceMap, source, expected) {
   // Check once with a separate source map
-  fs.writeFileSync('.generated.js.map', sourceMap);
+  fs.writeFileSync('.generated.js.map', `${ sourceMap }`);
   fs.writeFileSync('.generated.js', 'exports.test = function() {' +
     source.join('\n') + '};//@ sourceMappingURL=.generated.js.map');
   try {
