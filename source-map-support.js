@@ -408,6 +408,17 @@ function wrapCallSite(frame, state) {
   return frame;
 }
 
+let kIsNodeError = undefined;
+try {
+  // Get a deliberate ERR_INVALID_ARG_TYPE
+  // TODO is there a better way to reliably get an instance of NodeError?
+  new Buffer();
+} catch(e) {
+  const symbols = Object.getOwnPropertySymbols(e);
+  const symbol = symbols.find(s => s.toString().indexOf('kIsNodeError') >= 0);
+  if(symbol) kIsNodeError = symbol;
+}
+
 // This function is part of the V8 stack trace API, for more info see:
 // https://v8.dev/docs/stack-trace-api
 function prepareStackTrace(error, stack) {
@@ -416,9 +427,21 @@ function prepareStackTrace(error, stack) {
     sourceMapCache = {};
   }
 
-  var name = error.name || 'Error';
-  var message = error.message || '';
-  var errorString = name + ": " + message;
+  // node gives its own errors special treatment.  Mimic that behavior
+  // https://github.com/nodejs/node/blob/3cbaabc4622df1b4009b9d026a1a970bdbae6e89/lib/internal/errors.js#L118-L128
+  // https://github.com/nodejs/node/pull/39182
+  var errorString;
+  if (kIsNodeError) {
+    if(kIsNodeError in error) {
+      errorString = `${error.name} [${error.code}]: ${error.message}`;
+    } else {
+      errorString = ErrorPrototypeToString(error);
+    }
+  } else {
+    var name = error.name || 'Error';
+    var message = error.message || '';
+    errorString = name + ": " + message;
+  }
 
   var state = { nextPosition: null, curPosition: null };
   var processedStack = [];
@@ -471,11 +494,10 @@ function printErrorAndExit (error) {
   }
 
   if (source) {
-    console.error();
     console.error(source);
   }
 
-  console.error(error.stack);
+  console.error(error);
   process.exit(1);
 }
 
