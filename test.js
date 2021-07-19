@@ -113,7 +113,7 @@ function compareStackTrace(sourceMap, source, expected) {
 
 function compareStdout(done, sourceMap, source, expected) {
   fs.writeFileSync('.original.js', 'this is the original code');
-  fs.writeFileSync('.generated.js.map', sourceMap);
+  fs.writeFileSync('.generated.js.map', `${ sourceMap }`);
   fs.writeFileSync('.generated.js', source.join('\n') +
     '//@ sourceMappingURL=.generated.js.map');
   child_process.exec('node ./.generated', function(error, stdout, stderr) {
