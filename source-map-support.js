@@ -471,11 +471,10 @@ function printErrorAndExit (error) {
   }
 
   if (source) {
-    console.error();
     console.error(source);
   }
 
-  console.error(error.stack);
+  console.error(error);
   process.exit(1);
 }
 
