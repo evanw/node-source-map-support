@@ -47,7 +47,7 @@ jobs:
           path: temp/npm-cache
           key: npm-cache-${{ matrix.os }} ${{ matrix.node }}-${{ hashFiles('package-lock.json') }}
           # restore-keys: npm-cache-${{ matrix.os }} ${{ matrix.node }}-
-      - run: npm ci
+      - run: npm install
 
       # # install version to test against
       # - name: Use Node.js ${{ matrix.node }}
