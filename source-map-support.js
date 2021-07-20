@@ -415,7 +415,7 @@ try {
   path.resolve(123);
 } catch(e) {
   const symbols = Object.getOwnPropertySymbols(e);
-  const symbol = symbols.find(s => s.toString().indexOf('kIsNodeError') >= 0);
+  const symbol = symbols.find(function (s) {return s.toString().indexOf('kIsNodeError') >= 0});
   if(symbol) kIsNodeError = symbol;
 }
 
