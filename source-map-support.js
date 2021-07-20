@@ -408,7 +408,7 @@ function wrapCallSite(frame, state) {
   return frame;
 }
 
-let kIsNodeError = undefined;
+var kIsNodeError = undefined;
 try {
   // Get a deliberate ERR_INVALID_ARG_TYPE
   // TODO is there a better way to reliably get an instance of NodeError?
