@@ -412,7 +412,7 @@ let kIsNodeError = undefined;
 try {
   // Get a deliberate ERR_INVALID_ARG_TYPE
   // TODO is there a better way to reliably get an instance of NodeError?
-  new Buffer();
+  path.resolve(123);
 } catch(e) {
   const symbols = Object.getOwnPropertySymbols(e);
   const symbol = symbols.find(s => s.toString().indexOf('kIsNodeError') >= 0);
