@@ -6,7 +6,7 @@ var SourceMapGenerator = require('source-map').SourceMapGenerator;
 var child_process = require('child_process');
 var assert = require('assert');
 var fs = require('fs');
-var bufferFrom = require('buffer-from');
+var bufferFrom = Buffer.from;
 
 function compareLines(actual, expected) {
   assert(actual.length >= expected.length, 'got ' + actual.length + ' lines but expected at least ' + expected.length + ' lines');
