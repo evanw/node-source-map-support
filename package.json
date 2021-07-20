@@ -10,7 +10,6 @@
     "test": "mocha"
   },
   "dependencies": {
-    "buffer-from": "^1.0.0",
     "source-map": "^0.6.0"
   },
   "devDependencies": {
@@ -27,5 +26,8 @@
   "bugs": {
     "url": "https://github.com/evanw/node-source-map-support/issues"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "engines": {
+    "node": ">=12"
+  }
 }
