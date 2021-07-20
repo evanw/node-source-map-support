@@ -6,7 +6,7 @@ var SourceMapGenerator = require('source-map').SourceMapGenerator;
 var child_process = require('child_process');
 var assert = require('assert');
 var fs = require('fs');
-var bufferFrom = require('buffer-from');
+var bufferFrom = Buffer.from;
 
 function compareLines(actual, expected) {
   assert(actual.length >= expected.length, 'got ' + actual.length + ' lines but expected at least ' + expected.length + ' lines');
@@ -86,7 +86,7 @@ function createMultiLineSourceMapWithSourcesContent() {
 
 function compareStackTrace(sourceMap, source, expected) {
   // Check once with a separate source map
-  fs.writeFileSync('.generated.js.map', sourceMap);
+  fs.writeFileSync('.generated.js.map', sourceMap.toString());
   fs.writeFileSync('.generated.js', 'exports.test = function() {' +
     source.join('\n') + '};//@ sourceMappingURL=.generated.js.map');
   try {
@@ -113,7 +113,7 @@ function compareStackTrace(sourceMap, source, expected) {
 
 function compareStdout(done, sourceMap, source, expected) {
   fs.writeFileSync('.original.js', 'this is the original code');
-  fs.writeFileSync('.generated.js.map', sourceMap);
+  fs.writeFileSync('.generated.js.map', sourceMap.toString());
   fs.writeFileSync('.generated.js', source.join('\n') +
     '//@ sourceMappingURL=.generated.js.map');
   child_process.exec('node ./.generated', function(error, stdout, stderr) {
@@ -616,7 +616,7 @@ it('handleUncaughtExceptions is true with existing listener', function(done) {
   ];
 
   fs.writeFileSync('.original.js', 'this is the original code');
-  fs.writeFileSync('.generated.js.map', createSingleLineSourceMap());
+  fs.writeFileSync('.generated.js.map', createSingleLineSourceMap().toString());
   fs.writeFileSync('.generated.js', source.join('\n'));
 
   child_process.exec('node ./.generated', function(error, stdout, stderr) {
