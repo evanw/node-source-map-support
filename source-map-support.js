@@ -12,8 +12,6 @@ try {
   /* nop */
 }
 
-var bufferFrom = require('buffer-from');
-
 /**
  * Requires a module which is protected against bundler minification.
  *
@@ -171,7 +169,7 @@ retrieveMapHandlers.push(function(source) {
   if (reSourceMap.test(sourceMappingURL)) {
     // Support source map URL as a data url
     var rawData = sourceMappingURL.slice(sourceMappingURL.indexOf(',') + 1);
-    sourceMapData = bufferFrom(rawData, "base64").toString();
+    sourceMapData = Buffer.from(rawData, "base64").toString();
     sourceMappingURL = source;
   } else {
     // Support source map URLs relative to the source URL
