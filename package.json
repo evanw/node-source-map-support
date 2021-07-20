@@ -27,5 +27,8 @@
   "bugs": {
     "url": "https://github.com/evanw/node-source-map-support/issues"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "engines": {
+    "node": ">=12"
+  }
 }
