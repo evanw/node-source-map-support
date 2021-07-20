@@ -1,0 +1,53 @@
+name: Continuous Integration
+on:
+  # branches pushed by collaborators
+  push:
+    branches:
+      - master
+  # pull request from non-collaborators
+  pull_request: {}
+  # nightly
+  schedule:
+    - cron:  '0 0 * * *'
+jobs:
+  build:
+    name: "Test: ${{ matrix.os }}, node ${{ matrix.node }}"
+    runs-on: ${{ matrix.os }}-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu, windows]
+        node:
+          - 16
+          - 14
+          - 12
+          - 10
+          - 9
+          - '8'
+          - '7'
+          - '6'
+          - '4'
+          - '0.12'
+          # - '0.10'
+    steps:
+      # checkout code
+      - uses: actions/checkout@v2
+      # install node
+      - name: Use Node.js ${{ matrix.os }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+
+      # npm install with caching
+      - run: |
+          npm config set cache "$( node -p "process.cwd()" )/temp/npm-cache"
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: temp/npm-cache
+          key: npm-cache-${{ matrix.os }} ${{ matrix.node }}-${{ hashFiles('package-lock.json') }}
+          # restore-keys: npm-cache-${{ matrix.os }} ${{ matrix.node }}-
+      - run: npm install
+
+      # Run tests
+      - run: npm test
