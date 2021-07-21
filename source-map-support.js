@@ -299,6 +299,17 @@ function CallSiteToString() {
   }
 
   var line = "";
+  var isAsync = this.isAsync ? this.isAsync() : false;
+  if(isAsync) {
+    line += 'async ';
+    var isPromiseAll = this.isPromiseAll ? this.isPromiseAll() : false;
+    var isPromiseAny = this.isPromiseAny ? this.isPromiseAny() : false;
+    if(isPromiseAny || isPromiseAll) {
+      line += isPromiseAll ? 'Promise.all (index ' : 'Promise.any (index ';
+      var promiseIndex = this.getPromiseIndex();
+      line += promiseIndex + ')';
+    }
+  }
   var functionName = this.getFunctionName();
   var addSuffix = true;
   var isConstructor = this.isConstructor();
