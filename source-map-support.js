@@ -505,7 +505,6 @@ function printFatalErrorUponExit (error) {
       colors: process.stderr.isTTY
     })
   );
-  process.exit(1);
 }
 
 function shimEmitUncaughtException () {
