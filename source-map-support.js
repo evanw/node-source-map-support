@@ -485,7 +485,7 @@ function getErrorSource(error) {
   return null;
 }
 
-function printErrorAndExit (error) {
+function printFatalErrorUponExit (error) {
   var source = getErrorSource(error);
 
   // Ensure error is printed synchronously and not truncated
@@ -503,18 +503,20 @@ function printErrorAndExit (error) {
 
 function shimEmitUncaughtException () {
   var origEmit = process.emit;
+  var isTerminatingDueToFatalException = false;
+  var fatalException;
 
   process.emit = function (type) {
-    if (type === 'uncaughtException') {
-      var hasStack = (arguments[1] && arguments[1].stack);
-      var hasListeners = (this.listeners(type).length > 0);
-
-      if (hasStack && !hasListeners) {
-        return printErrorAndExit(arguments[1]);
-      }
+    const hadListeners = origEmit.apply(this, arguments);
+    if (type === 'uncaughtException' && !hadListeners) {
+      isTerminatingDueToFatalException = true;
+      fatalException = arguments[0];
+      process.exit(1);
     }
-
-    return origEmit.apply(this, arguments);
+    if (type === 'exit' && isTerminatingDueToFatalException) {
+      printFatalErrorUponExit(fatalException);
+    }
+    return hadListeners;
   };
 }
 
