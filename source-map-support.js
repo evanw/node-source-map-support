@@ -1,4 +1,4 @@
-var SourceMapConsumer = require('source-map').SourceMapConsumer;
+var SourceMapConsumer = require('@cspotcode/source-map-consumer').SourceMapConsumer;
 var path = require('path');
 
 var fs;
