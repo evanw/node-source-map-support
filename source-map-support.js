@@ -1,5 +1,6 @@
 var SourceMapConsumer = require('@cspotcode/source-map-consumer').SourceMapConsumer;
 var path = require('path');
+var util = require('util');
 
 var fs;
 try {
@@ -298,6 +299,17 @@ function CallSiteToString() {
   }
 
   var line = "";
+  var isAsync = this.isAsync ? this.isAsync() : false;
+  if(isAsync) {
+    line += 'async ';
+    var isPromiseAll = this.isPromiseAll ? this.isPromiseAll() : false;
+    var isPromiseAny = this.isPromiseAny ? this.isPromiseAny() : false;
+    if(isPromiseAny || isPromiseAll) {
+      line += isPromiseAll ? 'Promise.all (index ' : 'Promise.any (index ';
+      var promiseIndex = this.getPromiseIndex();
+      line += promiseIndex + ')';
+    }
+  }
   var functionName = this.getFunctionName();
   var addSuffix = true;
   var isConstructor = this.isConstructor();
@@ -485,7 +497,7 @@ function getErrorSource(error) {
   return null;
 }
 
-function printErrorAndExit (error) {
+function printFatalErrorUponExit (error) {
   var source = getErrorSource(error);
 
   // Ensure error is printed synchronously and not truncated
@@ -497,24 +509,31 @@ function printErrorAndExit (error) {
     console.error(source);
   }
 
-  console.error(error);
-  process.exit(1);
+  // Matches node's behavior for colorized output
+  console.error(
+    util.inspect(error, {
+      customInspect: false,
+      colors: process.stderr.isTTY
+    })
+  );
 }
 
 function shimEmitUncaughtException () {
   var origEmit = process.emit;
+  var isTerminatingDueToFatalException = false;
+  var fatalException;
 
   process.emit = function (type) {
-    if (type === 'uncaughtException') {
-      var hasStack = (arguments[1] && arguments[1].stack);
-      var hasListeners = (this.listeners(type).length > 0);
-
-      if (hasStack && !hasListeners) {
-        return printErrorAndExit(arguments[1]);
-      }
+    const hadListeners = origEmit.apply(this, arguments);
+    if (type === 'uncaughtException' && !hadListeners) {
+      isTerminatingDueToFatalException = true;
+      fatalException = arguments[1];
+      process.exit(1);
     }
-
-    return origEmit.apply(this, arguments);
+    if (type === 'exit' && isTerminatingDueToFatalException) {
+      printFatalErrorUponExit(fatalException);
+    }
+    return hadListeners;
   };
 }
 
