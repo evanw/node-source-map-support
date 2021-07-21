@@ -3,14 +3,17 @@
   "description": "Fixes stack traces for files with source maps",
   "version": "0.5.19",
   "main": "./source-map-support.js",
+  "types": "./source-map-support.d.ts",
   "scripts": {
     "build": "node build.js",
     "serve-tests": "http-server -p 1336",
     "test": "mocha"
   },
   "files": [
-    "source-map-support.js",
-    "register.js"
+    "/register.d.ts",
+    "/register.js",
+    "/source-map-support.d.ts",
+    "/source-map-support.js"
   ],
   "dependencies": {
     "source-map": "^0.6.0"
