@@ -28,10 +28,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/evanw/node-source-map-support"
+    "url": "https://github.com/cspotcode/node-source-map-support"
   },
   "bugs": {
-    "url": "https://github.com/evanw/node-source-map-support/issues"
+    "url": "https://github.com/cspotcode/node-source-map-support/issues"
   },
   "license": "MIT",
   "engines": {
