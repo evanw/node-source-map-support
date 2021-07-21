@@ -6,10 +6,11 @@ var SourceMapGenerator = require('source-map').SourceMapGenerator;
 var child_process = require('child_process');
 var assert = require('assert');
 var fs = require('fs');
+var util = require('util');
 var bufferFrom = Buffer.from;
 
 function compareLines(actual, expected) {
-  assert(actual.length >= expected.length, 'got ' + actual.length + ' lines but expected at least ' + expected.length + ' lines');
+  assert(actual.length >= expected.length, 'got ' + actual.length + ' lines but expected at least ' + expected.length + ' lines\n' + util.inspect({actual, expected}));
   for (var i = 0; i < expected.length; i++) {
     // Some tests are regular expressions because the output format changed slightly between node v0.9.2 and v0.9.3
     if (expected[i] instanceof RegExp) {
