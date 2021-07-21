@@ -516,7 +516,7 @@ function shimEmitUncaughtException () {
     const hadListeners = origEmit.apply(this, arguments);
     if (type === 'uncaughtException' && !hadListeners) {
       isTerminatingDueToFatalException = true;
-      fatalException = arguments[0];
+      fatalException = arguments[1];
       process.exit(1);
     }
     if (type === 'exit' && isTerminatingDueToFatalException) {
