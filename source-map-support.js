@@ -1,5 +1,6 @@
 var SourceMapConsumer = require('source-map').SourceMapConsumer;
 var path = require('path');
+var util = require('util');
 
 var fs;
 try {
@@ -497,7 +498,13 @@ function printErrorAndExit (error) {
     console.error(source);
   }
 
-  console.error(error);
+  // Matches node's behavior for colorized output
+  console.error(
+    util.inspect(error, {
+      customInspect: false,
+      colors: process.stderr.isTTY
+    })
+  );
   process.exit(1);
 }
 
