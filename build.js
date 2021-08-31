@@ -33,18 +33,43 @@ run(browserify + ' .temp.js', function(error, stdout) {
   ].join('\n');
 
   // Use the online Google Closure Compiler service for minification
-  fs.writeFileSync('.temp.js', querystring.stringify({
+  var body = Buffer.from(querystring.stringify({
     compilation_level: 'SIMPLE_OPTIMIZATIONS',
     output_info: 'compiled_code',
     output_format: 'text',
     js_code: code
   }));
-  run('curl -d @.temp.js "https://closure-compiler.appspot.com/compile"', function(error, stdout) {
-    if (error) throw error;
-    var code = header + '\n' + stdout;
-    fs.unlinkSync('.temp.js');
-    fs.writeFileSync('browser-source-map-support.js', code);
-    fs.writeFileSync('amd-test/browser-source-map-support.js', code);
+  console.log('making request to google closure compiler');
+  var https = require('https');
+  var request = https.request({
+    method: 'POST',
+    host: 'closure-compiler.appspot.com',
+    path: '/compile',
+    headers: {
+      'content-length': body.length,
+      'content-type': 'application/x-www-form-urlencoded'
+    },
+  });
+  request.end(body);
+  request.on('response', function(response) {
+    if (response.statusCode !== 200) {
+      response.pipe(process.stderr);
+      response.on('end', function() {
+        throw new Error('failed to post to closure compiler');
+      });
+      return;
+    }
+
+    var data = [];
+    response.on('data', function(chunk) {
+      data.push(chunk);
+    });
+    response.on('end', function() {
+      var stdout = Buffer.concat(data);
+      var code = header + '\n' + stdout;
+      fs.writeFileSync('browser-source-map-support.js', code);
+      fs.writeFileSync('amd-test/browser-source-map-support.js', code);
+    });
   });
 });
 
