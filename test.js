@@ -144,6 +144,30 @@ it('normal throw', function() {
   ]);
 });
 
+it('does not crash on missing process object', function() {
+  var proc = process;
+  compareStackTrace(createMultiLineSourceMap(), [
+    'global.process = null;',
+    'throw new Error("test");'
+  ], [
+    'Error: test',
+    /^    at Object\.exports\.test \((?:.*[/\\])?line2\.js:1002:102\)$/
+  ]);
+  global.process = proc;
+});
+
+it('does not crash on missing process.stderr', function() {
+  var stderr = process.stderr;
+  compareStackTrace(createMultiLineSourceMap(), [
+    'process.stderr = null;',
+    'throw new Error("test");'
+  ], [
+    'Error: test',
+    /^    at Object\.exports\.test \((?:.*[/\\])?line2\.js:1002:102\)$/
+  ]);
+  process.stderr = stderr;
+});
+
 /* The following test duplicates some of the code in
  * `normal throw` but triggers file read failure.
  */
