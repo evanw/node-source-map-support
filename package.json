@@ -12,6 +12,8 @@
   "files": [
     "/register.d.ts",
     "/register.js",
+    "/register-hook-require.d.ts",
+    "/register-hook-require.js",
     "/source-map-support.d.ts",
     "/source-map-support.js"
   ],

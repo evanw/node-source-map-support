@@ -30,6 +30,8 @@ From here you have two options.
 
 ```bash
 node -r @cspotcode/source-map-support/register compiled.js
+# Or to enable hookRequire
+node -r @cspotcode/source-map-support/register-hook-require compiled.js
 ```
 
 ##### Programmatic Usage
