@@ -67,6 +67,7 @@ run(browserify + ' .temp.js', function(error, stdout) {
     response.on('end', function() {
       var stdout = Buffer.concat(data);
       var code = header + '\n' + stdout;
+      fs.unlinkSync('.temp.js');
       fs.writeFileSync('browser-source-map-support.js', code);
       fs.writeFileSync('amd-test/browser-source-map-support.js', code);
     });
