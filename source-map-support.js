@@ -495,8 +495,14 @@ function printErrorAndExit (error) {
     console.error();
     console.error(source);
   }
-
-  console.error(error.stack);
+  const { stack } = error;
+  for (let i of stack.split("\n")) {
+    if (i.startsWith("    at file:///")) {
+      var end = i.lastIndexOf(":", i.lastIndexOf(":") - 1);
+      i = i.slice(0, 15) + decodeURI(i.slice(15, end)) + i.slice(end);
+    }
+    console.error(i);
+  }
   globalProcessExit(1);
 }
 
