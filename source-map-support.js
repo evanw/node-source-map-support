@@ -567,8 +567,9 @@ function printErrorAndExit(error) {
   for (let i of stack.split("\n")) {
     var pos = i.indexOf("file://");
     if (pos + 1) {
+      pos += 7;
       var end = i.lastIndexOf(":", i.lastIndexOf(":") - 1);
-      i = i.slice(0, pos + 7) + decodeURI(i.slice(15, end)) + i.slice(end);
+      i = i.slice(0, pos) + decodeURI(i.slice(pos, end)) + i.slice(end);
     }
     console.error(i);
   }
