@@ -1,4 +1,6 @@
-var SourceMapConsumer = require('source-map').SourceMapConsumer;
+var traceMapping = require('@jridgewell/trace-mapping');
+var TraceMap = traceMapping.TraceMap;
+var originalPositionFor = traceMapping.originalPositionFor;
 var path = require('path');
 
 var fs;
@@ -179,8 +181,7 @@ function retrieveSourceMapURL(source) {
 // Can be overridden by the retrieveSourceMap option to install. Takes a
 // generated source filename; returns a {map, optional url} object, or null if
 // there is no source map.  The map field may be either a string or the parsed
-// JSON object (ie, it must be a valid argument to the SourceMapConsumer
-// constructor).
+// JSON object (ie, it must be a valid argument to the TraceMap constructor).
 var retrieveSourceMap = handlerExec(retrieveMapHandlers);
 retrieveMapHandlers.push(function(source) {
   var sourceMappingURL = retrieveSourceMapURL(source);
@@ -217,7 +218,7 @@ function mapSourcePosition(position) {
     if (urlAndMap) {
       sourceMap = sourceMapCache[position.source] = {
         url: urlAndMap.url,
-        map: new SourceMapConsumer(urlAndMap.map)
+        map: new TraceMap(urlAndMap.map)
       };
 
       // Load all sources stored inline with the source map into the file cache
@@ -240,8 +241,8 @@ function mapSourcePosition(position) {
   }
 
   // Resolve the source URL relative to the URL of the source map
-  if (sourceMap && sourceMap.map && typeof sourceMap.map.originalPositionFor === 'function') {
-    var originalPosition = sourceMap.map.originalPositionFor(position);
+  if (sourceMap && sourceMap.map) {
+    var originalPosition = originalPositionFor(sourceMap.map, position);
 
     // Only return the original position if a matching line was found. If no
     // matching line is found then we return position instead, which will cause
