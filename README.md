@@ -7,6 +7,12 @@ This module provides source map support for stack traces in node via the [V8 sta
 
 #### Node support
 
+##### Node >=12.12.0
+
+This package is no longer required as [Node 12.12.0 introduced the `--enable-source-maps` flag.](https://nodejs.org/en/blog/release/v12.12.0/)
+
+##### Node <12.12.0
+
 ```
 $ npm install source-map-support
 ```
