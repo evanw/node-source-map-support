@@ -9,7 +9,7 @@ This module provides source map support for stack traces in node via the [V8 sta
 
 ##### Node >=12.12.0
 
-This package is no longer required as [Node 12.12.0 introduced the `--enable-source-maps` flag.](https://nodejs.org/docs/latest-v16.x/api/cli.html#--enable-source-maps)
+This package is no longer required as [Node 12.12.0 introduced the `--enable-source-maps` flag.](https://nodejs.org/docs/latest-v16.x/api/cli.html#--enable-source-maps) (unless you're using the [`vm`](https://nodejs.org/api/vm.html) module, as `--enable-source-maps` does not work with `vm.runInThisContext`). 
 
 ##### Node <12.12.0
 
