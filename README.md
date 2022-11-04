@@ -109,7 +109,7 @@ require('source-map-support').install({
 ```
 
 The module will by default assume a browser environment if XMLHttpRequest and window are defined. If either of these do not exist it will instead assume a node environment.
-In some rare cases, e.g. when running a browser emulation and where both variables are also set, you can explictly specify the environment to be either 'browser' or 'node'.
+In some rare cases, e.g. when running a browser emulation and where both variables are also set, you can explicitly specify the environment to be either 'browser' or 'node'.
 
 ```js
 require('source-map-support').install({

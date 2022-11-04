@@ -212,7 +212,7 @@ retrieveMapHandlers.push(function(source) {
 function mapSourcePosition(position) {
   var sourceMap = sourceMapCache[position.source];
   if (!sourceMap) {
-    // Call the (overrideable) retrieveSourceMap function to get the source map.
+    // Call the (overridable) retrieveSourceMap function to get the source map.
     var urlAndMap = retrieveSourceMap(position.source);
     if (urlAndMap) {
       sourceMap = sourceMapCache[position.source] = {
@@ -326,7 +326,7 @@ function CallSiteToString() {
   var isMethodCall = !(this.isToplevel() || isConstructor);
   if (isMethodCall) {
     var typeName = this.getTypeName();
-    // Fixes shim to be backward compatable with Node v0 to v4
+    // Fixes shim to be backward compatible with Node v0 to v4
     if (typeName === "[object Object]") {
       typeName = "null";
     }
