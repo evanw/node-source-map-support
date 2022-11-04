@@ -3,6 +3,14 @@
 
 This module provides source map support for stack traces in node via the [V8 stack trace API](https://github.com/v8/v8/wiki/Stack-Trace-API). It uses the [source-map](https://github.com/mozilla/source-map) module to replace the paths and line numbers of source-mapped files with their original paths and line numbers. The output mimics node's stack trace format with the goal of making every compile-to-JS language more of a first-class citizen. Source maps are completely general (not specific to any one language) so you can use source maps with multiple compile-to-JS languages in the same node process.
 
+## Compared to --enable-source-maps
+
+Node.js has a CLI flag `--enable-source-maps` which can be used to enable source maps support without needing to install any additional module. Notable differences:
+ 1. **performance** - beware that it slows down startup of your app considerably more than this module. 
+For example a bigger Typescript project startup is slowed down by 0.2 seconds with this module. When running with the `--enable-source-maps` startup is 12.1 seconds slower.
+ 2. **stack traces** - with this module shows just the mapped lines. Node.js source map support includes the lines from the `js` file which is executed and underneath the mapped source location. 
+If you relly on stack traces in your runtime code, you should be careful about mixing the two ways.
+
 ## Installation and Usage
 
 #### Node support
