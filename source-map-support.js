@@ -411,7 +411,13 @@ function wrapCallSite(frame, state) {
     frame.getFileName = function() { return position.source; };
     frame.getLineNumber = function() { return position.line; };
     frame.getColumnNumber = function() { return position.column + 1; };
-    frame.getScriptNameOrSourceURL = function() { return position.source; };
+    frame.getScriptNameOrSourceURL = function() {
+      if (!/^\w+:\/\//.test(position.source) && /^\w\:\\/.test(position.source)) {
+        // if it a windows path, need to add file:///
+        return 'file:///' + position.source.replace(/\\/g, '/');
+      }
+      return position.source;
+    };
     return frame;
   }
 
