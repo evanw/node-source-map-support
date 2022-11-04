@@ -3,6 +3,7 @@
   "description": "Fixes stack traces for files with source maps",
   "version": "0.5.21",
   "main": "./source-map-support.js",
+  "browser": "./browser-source-map-support.js",
   "scripts": {
     "build": "node build.js",
     "serve-tests": "http-server -p 1336",
