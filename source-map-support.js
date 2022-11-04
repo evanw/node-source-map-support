@@ -428,12 +428,16 @@ function wrapCallSite(frame, state) {
   return frame;
 }
 
+function emptyCache() {
+  fileContentsCache = {};
+  sourceMapCache = {};
+}
+
 // This function is part of the V8 stack trace API, for more info see:
 // https://v8.dev/docs/stack-trace-api
 function prepareStackTrace(error, stack) {
   if (emptyCacheBetweenOperations) {
-    fileContentsCache = {};
-    sourceMapCache = {};
+    emptyCache();
   }
 
   var name = error.name || 'Error';
@@ -623,3 +627,5 @@ exports.resetRetrieveHandlers = function() {
   retrieveSourceMap = handlerExec(retrieveMapHandlers);
   retrieveFile = handlerExec(retrieveFileHandlers);
 }
+
+exports.emptyCache = emptyCache;
