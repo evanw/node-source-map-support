@@ -167,6 +167,8 @@ function retrieveSourceMapURL(source) {
 
   // Get the URL of the source map
   fileData = retrieveFile(source);
+  // Skip sourceMappingURL in coffeescript.js, meant for emitting source maps.
+  if (source.endsWith('node_modules/coffeescript/lib/coffeescript/coffeescript.js')) return null
   var re = /(?:\/\/[@#][\s]*sourceMappingURL=([^\s'"]+)[\s]*$)|(?:\/\*[@#][\s]*sourceMappingURL=([^\s*'"]+)[\s]*(?:\*\/)[\s]*$)/mg;
   // Keep executing the search to find the *last* sourceMappingURL to avoid
   // picking up sourceMappingURLs from comments, strings, etc.
