@@ -452,11 +452,11 @@ function prepareStackTrace(error, stack) {
 
 // Generate position and snippet of original source with pointer
 function getErrorSource(error) {
-  var match = /\n    at [^(]+ \((.*):(\d+):(\d+)\)/.exec(error.stack);
+  var match = /^\s+at .*?(?:\(([^\s:]+):(\d+):(\d+)\)|([^\s:]+):(\d+):(\d+))$/m.exec(error.stack);
   if (match) {
-    var source = match[1];
-    var line = +match[2];
-    var column = +match[3];
+    var source = match[1] || match[4];
+    var line = +match[2] || +match[5];
+    var column = +match[3] || +match[6];
 
     // Support the inline sourceContents inside the source map
     var contents = fileContentsCache[source];
