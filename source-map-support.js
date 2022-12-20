@@ -91,6 +91,11 @@ function handlerExec(list) {
   };
 }
 
+// Removes a given file path from the source map cache.
+function removeFromCache(path) {
+  delete sourceMapCache[path];
+}
+
 var retrieveFile = handlerExec(retrieveFileHandlers);
 
 retrieveFileHandlers.push(function(path) {
@@ -524,6 +529,7 @@ exports.wrapCallSite = wrapCallSite;
 exports.getErrorSource = getErrorSource;
 exports.mapSourcePosition = mapSourcePosition;
 exports.retrieveSourceMap = retrieveSourceMap;
+exports.removeFromCache = removeFromCache;
 
 exports.install = function(options) {
   options = options || {};
