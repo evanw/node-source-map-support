@@ -361,7 +361,13 @@ function cloneCallSite(frame) {
   Object.getOwnPropertyNames(Object.getPrototypeOf(frame)).forEach(function(name) {
     object[name] = /^(?:is|get)/.test(name) ? function() { return frame[name].call(frame); } : frame[name];
   });
-  object.toString = CallSiteToString;
+
+  // If the Object prototype is frozen, the "toString" property is non-writable. This means that any objects which inherit this property
+  // cannot have the property changed using an assignment. If using strict mode, attempting that will cause an error. If not using strict
+  // mode, attempting that will be silently ignored.
+  // However, we can still explicitly shadow the prototype's "toString" property by defining a new "toString" property on this object.
+  Object.defineProperty(object, 'toString', { value: CallSiteToString });
+
   return object;
 }
 
