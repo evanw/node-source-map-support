@@ -366,7 +366,7 @@ function cloneCallSite(frame) {
   // cannot have the property changed using an assignment. If using strict mode, attempting that will cause an error. If not using strict
   // mode, attempting that will be silently ignored.
   // However, we can still explicitly shadow the prototype's "toString" property by defining a new "toString" property on this object.
-  Object.defineProperty(object, 'toString', { value: CallSiteToString });
+  Object.defineProperty(object, 'toString', { value: CallSiteToString, writable: true, enumerable: true, configurable: true });
 
   return object;
 }
