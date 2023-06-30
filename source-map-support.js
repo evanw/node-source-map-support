@@ -137,12 +137,14 @@ function supportRelativeURL(file, url) {
   var match = /^\w+:\/\/[^\/]*/.exec(dir);
   var protocol = match ? match[0] : '';
   var startPath = dir.slice(protocol.length);
+  var urlPath = url.startsWith(protocol) ? url.slice(protocol.length) : url;
+  var absolutePath = path.resolve(startPath, urlPath)
   if (protocol && /^\/\w\:/.test(startPath)) {
     // handle file:///C:/ paths
     protocol += '/';
-    return protocol + path.resolve(dir.slice(protocol.length), url).replace(/\\/g, '/');
+    return protocol + absolutePath.replace(/\\/g, '/');
   }
-  return protocol + path.resolve(dir.slice(protocol.length), url);
+  return protocol + absolutePath;
 }
 
 function retrieveSourceMapURL(source) {
