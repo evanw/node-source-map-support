@@ -1,4 +1,5 @@
-require('./source-map-support').install({
+var sourceMapSupport = require('./source-map-support');
+sourceMapSupport.install({
   emptyCacheBetweenOperations: true // Needed to be able to test for failure
 });
 
@@ -660,4 +661,12 @@ it('normal console.trace', function(done) {
     'Trace: test',
     /^    at Object\.<anonymous> \((?:.*[/\\])?line2\.js:1002:102\)$/
   ]);
+});
+
+it('supports absolute source map urls', function() {
+  var sourceMapUrl = sourceMapSupport.supportRelativeURL(
+    'http://127.0.0.1:1336/chunk/chunk.js',
+    'http://127.0.0.1:1336/chunk/chunk.js.map',
+  );
+  assert.equal(sourceMapUrl, 'http://127.0.0.1:1336/chunk/chunk.js.map');
 });
