@@ -524,6 +524,7 @@ exports.wrapCallSite = wrapCallSite;
 exports.getErrorSource = getErrorSource;
 exports.mapSourcePosition = mapSourcePosition;
 exports.retrieveSourceMap = retrieveSourceMap;
+exports.supportRelativeURL = supportRelativeURL;
 
 exports.install = function(options) {
   options = options || {};
