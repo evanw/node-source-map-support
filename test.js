@@ -86,7 +86,7 @@ function createMultiLineSourceMapWithSourcesContent() {
 
 function compareStackTrace(sourceMap, source, expected) {
   // Check once with a separate source map
-  fs.writeFileSync('.generated.js.map', sourceMap);
+  fs.writeFileSync('.generated.js.map', String(sourceMap));
   fs.writeFileSync('.generated.js', 'exports.test = function() {' +
     source.join('\n') + '};//@ sourceMappingURL=.generated.js.map');
   try {
@@ -113,7 +113,7 @@ function compareStackTrace(sourceMap, source, expected) {
 
 function compareStdout(done, sourceMap, source, expected) {
   fs.writeFileSync('.original.js', 'this is the original code');
-  fs.writeFileSync('.generated.js.map', sourceMap);
+  fs.writeFileSync('.generated.js.map', String(sourceMap));
   fs.writeFileSync('.generated.js', source.join('\n') +
     '//@ sourceMappingURL=.generated.js.map');
   child_process.exec('node ./.generated', function(error, stdout, stderr) {
@@ -142,6 +142,30 @@ it('normal throw', function() {
     'Error: test',
     /^    at Object\.exports\.test \((?:.*[/\\])?line1\.js:1001:101\)$/
   ]);
+});
+
+it('does not crash on missing process object', function() {
+  var proc = process;
+  compareStackTrace(createMultiLineSourceMap(), [
+    'global.process = null;',
+    'throw new Error("test");'
+  ], [
+    'Error: test',
+    /^    at Object\.exports\.test \((?:.*[/\\])?line2\.js:1002:102\)$/
+  ]);
+  global.process = proc;
+});
+
+it('does not crash on missing process.stderr', function() {
+  var stderr = process.stderr;
+  compareStackTrace(createMultiLineSourceMap(), [
+    'process.stderr = null;',
+    'throw new Error("test");'
+  ], [
+    'Error: test',
+    /^    at Object\.exports\.test \((?:.*[/\\])?line2\.js:1002:102\)$/
+  ]);
+  process.stderr = stderr;
 });
 
 /* The following test duplicates some of the code in
@@ -616,7 +640,7 @@ it('handleUncaughtExceptions is true with existing listener', function(done) {
   ];
 
   fs.writeFileSync('.original.js', 'this is the original code');
-  fs.writeFileSync('.generated.js.map', createSingleLineSourceMap());
+  fs.writeFileSync('.generated.js.map', String(createSingleLineSourceMap()));
   fs.writeFileSync('.generated.js', source.join('\n'));
 
   child_process.exec('node ./.generated', function(error, stdout, stderr) {
