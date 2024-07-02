@@ -497,7 +497,7 @@ function printErrorAndExit (error) {
   }
 
   console.error(error.stack);
-  globalProcessExit(1);
+  globalProcessExit(process.exitCode || 1);
 }
 
 function shimEmitUncaughtException () {
