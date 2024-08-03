@@ -28,11 +28,16 @@ function dynamicRequire(mod, request) {
 var errorFormatterInstalled = false;
 var uncaughtShimInstalled = false;
 
+var DEFAULT_EMPTY_CACHE_OPTION = false;
 // If true, the caches are reset before a stack trace formatting operation
-var emptyCacheBetweenOperations = false;
+var emptyCacheBetweenOperations = DEFAULT_EMPTY_CACHE_OPTION;
 
+var DEFAULT_ENV = "auto";
 // Supports {browser, node, auto}
-var environment = "auto";
+var environment = DEFAULT_ENV;
+
+var originalModuleCompile = null;
+var originalPrepareStackTrace = null;
 
 // Maps a file path to a string containing the file contents
 var fileContentsCache = {};
@@ -500,9 +505,10 @@ function printErrorAndExit (error) {
   globalProcessExit(1);
 }
 
-function shimEmitUncaughtException () {
-  var origEmit = process.emit;
+var origEmit = null;
 
+function shimEmitUncaughtException() {
+  origEmit = process.emit;
   process.emit = function (type) {
     if (type === 'uncaughtException') {
       var hasStack = (arguments[1] && arguments[1].stack);
@@ -517,6 +523,18 @@ function shimEmitUncaughtException () {
   };
 }
 
+function resetRetrieveHandlers() {
+  retrieveFileHandlers.length = 0;
+  retrieveMapHandlers.length = 0;
+
+  retrieveFileHandlers = originalRetrieveFileHandlers.slice(0);
+  retrieveMapHandlers = originalRetrieveMapHandlers.slice(0);
+
+  retrieveSourceMap = handlerExec(retrieveMapHandlers);
+  retrieveFile = handlerExec(retrieveFileHandlers);
+}
+
+
 var originalRetrieveFileHandlers = retrieveFileHandlers.slice(0);
 var originalRetrieveMapHandlers = retrieveMapHandlers.slice(0);
 
@@ -524,6 +542,7 @@ exports.wrapCallSite = wrapCallSite;
 exports.getErrorSource = getErrorSource;
 exports.mapSourcePosition = mapSourcePosition;
 exports.retrieveSourceMap = retrieveSourceMap;
+exports.resetRetrieveHandlers = resetRetrieveHandlers;
 
 exports.install = function(options) {
   options = options || {};
@@ -563,6 +582,7 @@ exports.install = function(options) {
 
     if (!$compile.__sourceMapSupport) {
       Module.prototype._compile = function(content, filename) {
+      originalModuleCompile = $compile;
         fileContentsCache[filename] = content;
         sourceMapCache[filename] = undefined;
         return $compile.call(this, content, filename);
@@ -575,12 +595,13 @@ exports.install = function(options) {
   // Configure options
   if (!emptyCacheBetweenOperations) {
     emptyCacheBetweenOperations = 'emptyCacheBetweenOperations' in options ?
-      options.emptyCacheBetweenOperations : false;
+      options.emptyCacheBetweenOperations : DEFAULT_EMPTY_CACHE_OPTION;
   }
 
   // Install the error reformatter
   if (!errorFormatterInstalled) {
     errorFormatterInstalled = true;
+    originalPrepareStackTrace = Error.prepareStackTrace;
     Error.prepareStackTrace = prepareStackTrace;
   }
 
@@ -613,13 +634,34 @@ exports.install = function(options) {
   }
 };
 
-exports.resetRetrieveHandlers = function() {
-  retrieveFileHandlers.length = 0;
-  retrieveMapHandlers.length = 0;
+exports.uninstall = function () {
+  fileContentsCache = {};
+  sourceMapCache = {};
 
-  retrieveFileHandlers = originalRetrieveFileHandlers.slice(0);
-  retrieveMapHandlers = originalRetrieveMapHandlers.slice(0);
+  if (uncaughtShimInstalled) {
+    process.emit = origEmit;
+    origEmit = null;
+    uncaughtShimInstalled = false;
+  }
 
-  retrieveSourceMap = handlerExec(retrieveMapHandlers);
-  retrieveFile = handlerExec(retrieveFileHandlers);
+  if (errorFormatterInstalled) {
+    Error.prepareStackTrace = originalPrepareStackTrace;
+    originalPrepareStackTrace = null;
+    errorFormatterInstalled = false;
+  }
+
+  emptyCacheBetweenOperations = DEFAULT_EMPTY_CACHE_OPTION;
+
+  if (!isInBrowser()) {
+    var Module = dynamicRequire(module, 'module');
+    var $compile = Module.prototype._compile;
+    if ($compile.__sourceMapSupport) {
+      Module.prototype._compile = originalModuleCompile;
+    }
+    originalModuleCompile = null;
+  }
+
+  resetRetrieveHandlers();
+
+  environment = DEFAULT_ENV;
 }
