@@ -2,7 +2,12 @@ require('./source-map-support').install({
   emptyCacheBetweenOperations: true // Needed to be able to test for failure
 });
 
-var SourceMapGenerator = require('source-map').SourceMapGenerator;
+var genMapping = require('@jridgewell/gen-mapping');
+var GenMapping = genMapping.GenMapping;
+var maybeAddMapping = genMapping.maybeAddMapping;
+var setSourceContent = genMapping.setSourceContent;
+var toEncodedMap = genMapping.toEncodedMap;
+
 var child_process = require('child_process');
 var assert = require('assert');
 var fs = require('fs');
@@ -21,7 +26,7 @@ function compareLines(actual, expected) {
 }
 
 function createEmptySourceMap() {
-  return new SourceMapGenerator({
+  return new GenMapping({
     file: '.generated.js',
     sourceRoot: '.'
   });
@@ -29,7 +34,7 @@ function createEmptySourceMap() {
 
 function createSourceMapWithGap() {
   var sourceMap = createEmptySourceMap();
-  sourceMap.addMapping({
+  maybeAddMapping(sourceMap, {
     generated: { line: 100, column: 0 },
     original: { line: 100, column: 0 },
     source: '.original.js'
@@ -39,7 +44,7 @@ function createSourceMapWithGap() {
 
 function createSingleLineSourceMap() {
   var sourceMap = createEmptySourceMap();
-  sourceMap.addMapping({
+  maybeAddMapping(sourceMap, {
     generated: { line: 1, column: 0 },
     original: { line: 1, column: 0 },
     source: '.original.js'
@@ -49,7 +54,7 @@ function createSingleLineSourceMap() {
 
 function createSecondLineSourceMap() {
   var sourceMap = createEmptySourceMap();
-  sourceMap.addMapping({
+  maybeAddMapping(sourceMap, {
     generated: { line: 2, column: 0 },
     original: { line: 1, column: 0 },
     source: '.original.js'
@@ -60,7 +65,7 @@ function createSecondLineSourceMap() {
 function createMultiLineSourceMap() {
   var sourceMap = createEmptySourceMap();
   for (var i = 1; i <= 100; i++) {
-    sourceMap.addMapping({
+    maybeAddMapping(sourceMap, {
       generated: { line: i, column: 0 },
       original: { line: 1000 + i, column: 99 + i },
       source: 'line' + i + '.js'
@@ -73,20 +78,24 @@ function createMultiLineSourceMapWithSourcesContent() {
   var sourceMap = createEmptySourceMap();
   var original = new Array(1001).join('\n');
   for (var i = 1; i <= 100; i++) {
-    sourceMap.addMapping({
+    maybeAddMapping(sourceMap, {
       generated: { line: i, column: 0 },
       original: { line: 1000 + i, column: 4 },
       source: 'original.js'
     });
     original += '    line ' + i + '\n';
   }
-  sourceMap.setSourceContent('original.js', original);
+  setSourceContent(sourceMap, 'original.js', original);
   return sourceMap;
+}
+
+function toBase64(sourceMap) {
+  return bufferFrom(JSON.stringify(toEncodedMap(sourceMap))).toString('base64');
 }
 
 function compareStackTrace(sourceMap, source, expected) {
   // Check once with a separate source map
-  fs.writeFileSync('.generated.js.map', String(sourceMap));
+  fs.writeFileSync('.generated.js.map', JSON.stringify(toEncodedMap(sourceMap)));
   fs.writeFileSync('.generated.js', 'exports.test = function() {' +
     source.join('\n') + '};//@ sourceMappingURL=.generated.js.map');
   try {
@@ -101,7 +110,7 @@ function compareStackTrace(sourceMap, source, expected) {
   // Check again with an inline source map (in a data URL)
   fs.writeFileSync('.generated.js', 'exports.test = function() {' +
     source.join('\n') + '};//@ sourceMappingURL=data:application/json;base64,' +
-    bufferFrom(sourceMap.toString()).toString('base64'));
+    toBase64(sourceMap));
   try {
     delete require.cache[require.resolve('./.generated')];
     require('./.generated').test();
@@ -113,7 +122,7 @@ function compareStackTrace(sourceMap, source, expected) {
 
 function compareStdout(done, sourceMap, source, expected) {
   fs.writeFileSync('.original.js', 'this is the original code');
-  fs.writeFileSync('.generated.js.map', String(sourceMap));
+  fs.writeFileSync('.generated.js.map', JSON.stringify(toEncodedMap(sourceMap)));
   fs.writeFileSync('.generated.js', source.join('\n') +
     '//@ sourceMappingURL=.generated.js.map');
   child_process.exec('node ./.generated', function(error, stdout, stderr) {
@@ -351,12 +360,12 @@ it('finds the last sourceMappingURL', function() {
 
 it('maps original name from source', function() {
   var sourceMap = createEmptySourceMap();
-  sourceMap.addMapping({
+  maybeAddMapping(sourceMap, {
     generated: { line: 2, column: 8 },
     original: { line: 1000, column: 10 },
     source: '.original.js',
   });
-  sourceMap.addMapping({
+  maybeAddMapping(sourceMap, {
     generated: { line: 4, column: 0 },
     original: { line: 1002, column: 1 },
     source: ".original.js",
@@ -528,7 +537,7 @@ it('should consult all retrieve source map providers', function(done) {
     '  retrieveSourceMap: function(name) {',
     '    if (/\\.generated.js$/.test(name)) {',
     '      count++;',
-    '      return ' + JSON.stringify({url: '.original.js', map: createMultiLineSourceMapWithSourcesContent().toJSON()}) + ';',
+    '      return ' + JSON.stringify({url: '.original.js', map: toEncodedMap(createMultiLineSourceMapWithSourcesContent())}) + ';',
     '    }',
     '  }',
     '});',
@@ -567,7 +576,7 @@ it('should allow for runtime inline source maps', function(done) {
           'process.nextTick(foo);',
           'process.nextTick(foo);',
           'process.nextTick(function() { console.log(count); });',
-          '//@ sourceMappingURL=data:application/json;charset=utf8;base64,' + bufferFrom(sourceMap.toString()).toString('base64')
+          '//@ sourceMappingURL=data:application/json;charset=utf8;base64,' + toBase64(sourceMap)
         ].join('\n')),
         ', filename);',
     '};',
@@ -595,7 +604,7 @@ it('finds source maps with charset specified', function() {
 
   fs.writeFileSync('.generated.js', 'exports.test = function() {' +
     source.join('\n') + '};//@ sourceMappingURL=data:application/json;charset=utf8;base64,' +
-    bufferFrom(sourceMap.toString()).toString('base64'));
+    toBase64(sourceMap));
   try {
     delete require.cache[require.resolve('./.generated')];
     require('./.generated').test();
@@ -619,7 +628,7 @@ it('allows code/comments after sourceMappingURL', function() {
 
   fs.writeFileSync('.generated.js', 'exports.test = function() {' +
     source.join('\n') + '};//# sourceMappingURL=data:application/json;base64,' +
-    bufferFrom(sourceMap.toString()).toString('base64') +
+    toBase64(sourceMap) +
     '\n// Some comment below the sourceMappingURL\nvar foo = 0;');
   try {
     delete require.cache[require.resolve('./.generated')];
@@ -640,7 +649,7 @@ it('handleUncaughtExceptions is true with existing listener', function(done) {
   ];
 
   fs.writeFileSync('.original.js', 'this is the original code');
-  fs.writeFileSync('.generated.js.map', String(createSingleLineSourceMap()));
+  fs.writeFileSync('.generated.js.map', JSON.stringify(toEncodedMap(createSingleLineSourceMap())));
   fs.writeFileSync('.generated.js', source.join('\n'));
 
   child_process.exec('node ./.generated', function(error, stdout, stderr) {

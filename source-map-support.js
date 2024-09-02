@@ -1,5 +1,22 @@
-var SourceMapConsumer = require('source-map').SourceMapConsumer;
-var path = require('path');
+var traceMapping = require('@jridgewell/trace-mapping');
+var TraceMap = traceMapping.TraceMap;
+var originalPositionFor = traceMapping.originalPositionFor;
+
+function pathDirname(file) {
+  return file.substring(0, file.lastIndexOf('/'));
+}
+
+function pathResolve(dir, file) {
+  if (dir === '.') {
+    try {
+      dir = process.cwd()
+    } catch (e) {
+      var loc = window.location.pathname;
+      dir = loc.substring(0, loc.lastIndexOf('/'));
+    }
+  }
+  return new URL(file, 'file://' + dir + '/').pathname
+}
 
 var fs;
 try {
@@ -133,16 +150,16 @@ retrieveFileHandlers.push(function(path) {
 // in case we are in the browser (i.e. directories may start with "http://" or "file:///")
 function supportRelativeURL(file, url) {
   if (!file) return url;
-  var dir = path.dirname(file);
+  var dir = pathDirname(file);
   var match = /^\w+:\/\/[^\/]*/.exec(dir);
   var protocol = match ? match[0] : '';
   var startPath = dir.slice(protocol.length);
   if (protocol && /^\/\w\:/.test(startPath)) {
     // handle file:///C:/ paths
     protocol += '/';
-    return protocol + path.resolve(dir.slice(protocol.length), url).replace(/\\/g, '/');
+    return protocol + pathResolve(dir.slice(protocol.length), url).replace(/\\/g, '/');
   }
-  return protocol + path.resolve(dir.slice(protocol.length), url);
+  return protocol + pathResolve(dir.slice(protocol.length), url);
 }
 
 function retrieveSourceMapURL(source) {
@@ -179,8 +196,7 @@ function retrieveSourceMapURL(source) {
 // Can be overridden by the retrieveSourceMap option to install. Takes a
 // generated source filename; returns a {map, optional url} object, or null if
 // there is no source map.  The map field may be either a string or the parsed
-// JSON object (ie, it must be a valid argument to the SourceMapConsumer
-// constructor).
+// JSON object (ie, it must be a valid argument to the TraceMap constructor).
 var retrieveSourceMap = handlerExec(retrieveMapHandlers);
 retrieveMapHandlers.push(function(source) {
   var sourceMappingURL = retrieveSourceMapURL(source);
@@ -191,7 +207,12 @@ retrieveMapHandlers.push(function(source) {
   if (reSourceMap.test(sourceMappingURL)) {
     // Support source map URL as a data url
     var rawData = sourceMappingURL.slice(sourceMappingURL.indexOf(',') + 1);
-    sourceMapData = bufferFrom(rawData, "base64").toString();
+    if (isInBrowser()) {
+      sourceMapData = window.atob(rawData)
+    } else {
+      sourceMapData = bufferFrom(rawData, "base64").toString();
+    }
+
     sourceMappingURL = source;
   } else {
     // Support source map URLs relative to the source URL
@@ -217,7 +238,7 @@ function mapSourcePosition(position) {
     if (urlAndMap) {
       sourceMap = sourceMapCache[position.source] = {
         url: urlAndMap.url,
-        map: new SourceMapConsumer(urlAndMap.map)
+        map: new TraceMap(urlAndMap.map)
       };
 
       // Load all sources stored inline with the source map into the file cache
@@ -240,8 +261,8 @@ function mapSourcePosition(position) {
   }
 
   // Resolve the source URL relative to the URL of the source map
-  if (sourceMap && sourceMap.map && typeof sourceMap.map.originalPositionFor === 'function') {
-    var originalPosition = sourceMap.map.originalPositionFor(position);
+  if (sourceMap && sourceMap.map) {
+    var originalPosition = originalPositionFor(sourceMap.map, position);
 
     // Only return the original position if a matching line was found. If no
     // matching line is found then we return position instead, which will cause

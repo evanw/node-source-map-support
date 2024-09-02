@@ -282,8 +282,10 @@ This repo contains both automated tests for node and manual tests for the browse
 * Launch the HTTP server (`npm run serve-tests`) and visit
   * http://127.0.0.1:1336/amd-test
   * http://127.0.0.1:1336/browser-test
-  * http://127.0.0.1:1336/browserify-test - **Currently not working** due to a bug with browserify (see [pull request #66](https://github.com/evanw/node-source-map-support/pull/66) for details).
-* For `header-test`, run `server.js` inside that directory and visit http://127.0.0.1:1337/
+  * http://127.0.0.1:1336/browserify-test - It works when we use for browserify the coffeeify transform module. The description of the problem when not using this module is: [pull request #66](https://github.com/evanw/node-source-map-support/pull/66).
+  * http://127.0.0.1:1336/vite-test/
+  * http://127.0.0.1:1336/webpack-test/
+* For `header-test`, run `npm run serve-header-tests` and visit http://127.0.0.1:1337/
 
 ## License
 

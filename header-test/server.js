@@ -24,7 +24,11 @@ http.createServer(function(req, res) {
 
     case '/script-source-map.map': {
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(fs.readFileSync('script.map', 'utf8'));
+      try {
+        res.end(fs.readFileSync('script.map', 'utf8'));
+      } catch(err) {
+        res.end(fs.readFileSync('script.js.map', 'utf8'));
+      }
       break;
     }
 

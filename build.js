@@ -5,10 +5,12 @@ const path = require('node:path');
 const child_process = require('node:child_process');
 const https = require('node:https');
 const { text } = require('node:stream/consumers');
+var UglifyJS = require("uglify-js");
 
 const browserify = path.resolve(path.join('node_modules', '.bin', 'browserify'));
 const webpack = path.resolve(path.join('node_modules', '.bin', 'webpack'));
 const coffee = path.resolve(path.join('node_modules', '.bin', 'coffee'));
+const vite = path.resolve(path.join('node_modules', '.bin', 'vite'));
 
 function run(command, callback) {
   console.log(command);
@@ -35,44 +37,13 @@ run(browserify + ' .temp.js', (error, stdout) => {
     'return sourceMapSupport});',
   ].join('\n');
 
-  // Use the online Google Closure Compiler service for minification
-  const body = new URLSearchParams({
-    compilation_level: 'SIMPLE_OPTIMIZATIONS',
-    output_info: 'compiled_code',
-    output_format: 'text',
-    js_code: code
-  });
+  var result = UglifyJS.minify(code);
 
-  const buffer = new TextEncoder().encode(body.toString())
+  if (result.error !== undefined) throw result.error;
 
-  console.log('making request to google closure compiler');
-
-  const request = https.request({
-    method: 'POST',
-    host: 'closure-compiler.appspot.com',
-    path: '/compile',
-    headers: {
-      'content-length': buffer.byteLength,
-      'content-type': 'application/x-www-form-urlencoded'
-    },
-  });
-
-  request.once('response', response => {
-    text(response).then(stdout => {
-      fs.unlinkSync('.temp.js');
-
-      if (response.statusCode !== 200) {
-        console.error(stdout);
-        throw new Error('failed to post to closure compiler');
-      }
-
-      const code = header + '\n' + stdout;
-      fs.writeFileSync('browser-source-map-support.js', code);
-      fs.writeFileSync('amd-test/browser-source-map-support.js', code);
-    });
-  });
-
-  request.end(buffer);
+  const codeMin = header + '\n' + result.code;
+  fs.writeFileSync('browser-source-map-support.js', codeMin);
+  fs.writeFileSync('amd-test/browser-source-map-support.js', codeMin);
 });
 
 // Build the AMD test
@@ -81,12 +52,10 @@ run(coffee + ' --map --compile amd-test/script.coffee', error => {
 });
 
 // Build the browserify test
-run(coffee + ' --map --compile browserify-test/script.coffee', error => {
+run(browserify + ' -t coffeeify --debug browserify-test/script.coffee > browserify-test/compiled.js', error => {
   if (error) throw error;
-  run(browserify + ' --debug browserify-test/script.js > browserify-test/compiled.js', error => {
-    if (error) throw error;
-  })
 });
+
 
 // Build the browser test
 run(coffee + ' --map --compile browser-test/script.coffee', error => {
@@ -104,3 +73,9 @@ run(coffee + ' --map --compile header-test/script.coffee', error => {
 child_process.exec(webpack, {cwd: 'webpack-test'}, error => {
   if (error) throw error;
 });
+
+// Build the vite test
+child_process.exec(vite + ' build --outDir ../', {cwd: 'vite-test/src'}, error => {
+  if (error) throw error;
+});
+

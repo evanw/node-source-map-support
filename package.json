@@ -1,24 +1,31 @@
 {
   "name": "source-map-support",
   "description": "Fixes stack traces for files with source maps",
-  "version": "0.5.21",
+  "version": "0.6.1",
   "main": "./source-map-support.js",
   "scripts": {
     "build": "node build.js",
     "serve-tests": "http-server -p 1336",
+    "serve-header-tests": "cd header-test && node server.js",
     "prepublish": "npm run build",
     "test": "mocha"
   },
   "dependencies": {
-    "buffer-from": "^1.0.0",
-    "source-map": "^0.6.0"
+    "@jridgewell/trace-mapping": "^0.3.7",
+    "buffer-from": "^1.1.2",
+    "uglify-js": "^3.19.2"
   },
   "devDependencies": {
-    "browserify": "^4.2.3",
+    "@jridgewell/gen-mapping": "^0.3.1",
+    "browserify": "^17.0.0",
+    "coffeeify": "^3.0.1",
     "coffeescript": "^1.12.7",
-    "http-server": "^0.11.1",
-    "mocha": "^3.5.3",
-    "webpack": "^1.15.0"
+    "http-server": "^14.1.1",
+    "mocha": "^10.7.3",
+    "vite": "^5.4.2",
+    "vite-plugin-commonjs": "^0.10.1",
+    "webpack": "^5.94.0",
+    "webpack-cli": "^5.1.4"
   },
   "repository": {
     "type": "git",
