@@ -336,7 +336,11 @@ function CallSiteToString() {
         line += typeName + ".";
       }
       line += functionName;
-      if (methodName && functionName.indexOf("." + methodName) != functionName.length - methodName.length - 1) {
+      if (
+        methodName &&
+        functionName.indexOf("." + methodName) !== -1 &&
+        functionName.indexOf("." + methodName) !== functionName.length - methodName.length - 1
+      ) {
         line += " [as " + methodName + "]";
       }
     } else {
